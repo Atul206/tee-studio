@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tee Studio</title>
+<!-- Everything loads from this folder: open index.html directly, no server or internet needed. -->
+<link rel="stylesheet" href="app/styles.css">
+<script src="fonts/fonts.js"></script>
+<script src="lib/fabric.min.js"></script>
+<script src="lib/ag-psd.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/paper-core.min.js"></script>
+<script src="lib/opentype.min.js"></script>
+<script src="lib/clipper.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- MENU BAR -->
+  <div class="menu" id="menu">
+    <span class="logo"><i></i>Tee Studio</span>
+    <div class="mi"><button>File</button><div class="dd">
+      <button data-cmd="home">My designs / New… <kbd>⌘N</kbd></button>
+      <button data-cmd="open">Open project file… <kbd>⌘O</kbd></button>
+      <button data-cmd="save">Save now <kbd>⌘S</kbd></button>
+      <button data-cmd="rename">Rename design…</button>
+      <button data-cmd="savecopy">Download a copy (.tee.json)</button>
+      <button data-cmd="folder">Choose designs folder…</button>
+      <hr><button data-cmd="import">Import image / SVG… <kbd>⌘I</kbd></button>
+      <button data-cmd="export">Export… <kbd>⌘E</kbd></button>
+    </div></div>
+    <div class="mi"><button>Edit</button><div class="dd">
+      <button data-cmd="undo">Undo <kbd>⌘Z</kbd></button>
+      <button data-cmd="redo">Redo <kbd>⇧⌘Z</kbd></button>
+      <hr><button data-cmd="copy">Copy <kbd>⌘C</kbd></button>
+      <button data-cmd="paste">Paste <kbd>⌘V</kbd></button>
+      <button data-cmd="dup">Duplicate (repeats your last change to a copy) <kbd>⌘D</kbd></button>
+      <button data-cmd="dupinplace">Duplicate in place <kbd>+</kbd></button>
+      <button data-cmd="del">Delete <kbd>Del</kbd></button>
+      <hr><button data-cmd="selall">Select all <kbd>⌘A</kbd></button>
+    </div></div>
+    <div class="mi"><button>View</button><div class="dd">
+      <button data-cmd="zin">Zoom in <kbd>+</kbd></button>
+      <button data-cmd="zout">Zoom out <kbd>−</kbd></button>
+      <button data-cmd="fit">Fit to window <kbd>⇧F4</kbd></button>
+      <hr><button data-cmd="preview">Toggle mockup preview <kbd>F9</kbd></button>
+    </div></div>
+    <div class="mi"><button>Object</button><div class="dd">
+      <button data-cmd="group">Group <kbd>⌘G</kbd></button>
+      <button data-cmd="ungroup">Ungroup <kbd>⇧⌘G</kbd></button>
+      <hr><button data-cmd="front">Bring to front <kbd>⇧PgUp</kbd></button>
+      <button data-cmd="fwd">Forward one <kbd>⌘PgUp</kbd></button>
+      <button data-cmd="back">Back one <kbd>⌘PgDn</kbd></button>
+      <button data-cmd="toback">Send to back <kbd>⇧PgDn</kbd></button>
+      <hr><button data-cmd="flipx">Flip horizontal</button>
+      <button data-cmd="flipy">Flip vertical</button>
+      <button data-cmd="center">Center in print area <kbd>P</kbd></button>
+      <hr><button data-cmd="shape:weld">Weld</button>
+      <button data-cmd="shape:trim">Trim</button>
+      <button data-cmd="shape:intersect">Intersect</button>
+      <button data-cmd="shape:simplify">Simplify</button>
+      <button data-cmd="shape:fmb">Front minus back</button>
+      <button data-cmd="shape:bmf">Back minus front</button>
+      <hr><button data-cmd="shape:combine">Combine</button>
+      <button data-cmd="shape:breakapart">Break apart</button>
+      <button data-cmd="shape:curves">Convert to curves</button>
+      <hr><button data-cmd="clip:place">Place inside frame (PowerClip)…</button>
+      <button data-cmd="clip:extract">Extract contents</button>
+      <button data-cmd="clip:edit">Edit contents</button>
+      <button data-cmd="clip:empty">Create empty clip frame</button>
+      <button data-cmd="clip:noframe">No frame (empty frame back to a shape)</button>
+      <button data-cmd="clip:mask">Opacity mask on/off</button>
+      <button data-cmd="clip:invert">Invert mask</button>
+      <hr><button data-cmd="focus">Bring into focus</button>
+      <button data-cmd="focusout">Leave focus mode</button>
+    </div></div>
+    <div class="mi"><button>Effects</button><div class="dd">
+      <button data-cmd="tool:fxshadow">Drop shadow tool</button>
+      <button data-cmd="tool:fxcontour">Contour tool</button>
+      <button data-cmd="tool:fxenvelope">Envelope tool</button>
+      <button data-cmd="tool:fxdistort">Distort tool</button>
+      <button data-cmd="tool:fxblend">Blend tool</button>
+      <button data-cmd="tool:fxtransp">Transparency tool</button>
+      <hr><button data-cmd="shadow">Soft drop shadow on/off</button>
+      <button data-cmd="fxbreak">Break effect apart <kbd>⌘K</kbd></button>
+    </div></div>
+    <div class="mi"><button>Text</button><div class="dd">
+      <button data-cmd="tool:text">Text tool <kbd>F8</kbd></button>
+      <button data-cmd="fitpath">Fit text to path</button>
+      <button data-cmd="straighten">Straighten text</button>
+      <hr><button data-cmd="shape:curves">Convert to curves</button>
+    </div></div>
+    <div class="mi"><button>Help</button><div class="dd">
+      <button data-cmd="help">Keyboard shortcuts</button>
+    </div></div>
+    <span class="spacer"></span>
+    <span class="doc" id="docname"></span>
+  </div>
+
+  <!-- STANDARD TOOLBAR -->
+  <div class="std">
+    <button class="ib" title="My designs / New (⌘N)" data-cmd="home"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg></button>
+    <button class="ib" title="Open project" data-cmd="open"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg></button>
+    <button class="ib" title="Save now (⌘S)" data-cmd="save"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button>
+    <span class="sep"></span>
+    <button class="ib" id="bUndo" title="Undo (⌘Z)" data-cmd="undo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="ib" id="bRedo" title="Redo (⇧⌘Z)" data-cmd="redo"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <span class="sep"></span>
+    <button class="ib" title="Import image / SVG (⌘I)" data-cmd="import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v4h16v-4"/></svg></button>
+    <span class="sep"></span>
+    <button class="ib" title="Zoom out" data-cmd="zout">−</button>
+    <span class="zoomlbl" id="zoomlbl">100%</span>
+    <button class="ib" title="Zoom in" data-cmd="zin">+</button>
+    <button class="ib" title="Fit" data-cmd="fit">⤢</button>
+    <span class="sep"></span>
+    <button class="ib" id="bSnap" title="Snapping to objects and the print area (Alt+Q)" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24"><path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/></svg></button>
+    <button class="ib" id="bGuides" title="Alignment guides: edges, centres, equal spacing and sizes (Alt+Shift+A)" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="7" height="6"/><rect x="14" y="13" width="7" height="6"/><path d="M12 2v20" stroke="rgb(230,40,150)" stroke-dasharray="2 2"/></svg></button>
+    <span class="spacer"></span>
+    <div class="seg" id="modeSeg"><button class="on" data-m="design">Design</button><button data-m="preview">Mockup preview</button></div>
+    <span class="sep"></span>
+    <button class="btn ghost" data-cmd="quickpng">Quick PNG</button>
+    <button class="btn primary" data-cmd="export">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12-4-4m4 4 4-4"/><path d="M4 17v4h16v-4"/></svg>
+      Export
+    </button>
+  </div>
+
+  <!-- PROPERTY BAR -->
+  <div class="prop">
+    <span class="ctx-label" id="ctxLabel">Pick</span>
+    <div class="pgrp on" id="pbNone">
+      <span class="hint" id="toolHint">Click an object to select it. Drag on empty space to marquee-select.</span>
+      <span class="sep"></span>
+      <span class="hint">Print area <b style="color:#d7d9de">12 × 16 in</b> · 300 DPI · 3600 × 4800 px</span>
+    </div>
+    <div class="pgrp" id="pbText">
+      <select class="sel" id="pFont" style="width:150px"></select>
+      <span class="fld"><input class="s" id="pSize" type="number" min="4" step="1"> pt</span>
+      <span class="sep"></span>
+      <button class="tog" id="pBold" title="Bold">B</button>
+      <button class="tog" id="pItalic" title="Italic" style="font-style:italic">I</button>
+      <button class="tog" id="pUnder" title="Underline" style="text-decoration:underline">U</button>
+      <span class="sep"></span>
+      <button class="tog" data-align="left" title="Align left">⟸</button>
+      <button class="tog" data-align="center" title="Center">≡</button>
+      <button class="tog" data-align="right" title="Align right">⟹</button>
+      <span class="sep"></span>
+      <span class="fld" title="Letter spacing">Spacing <input class="s" id="pSpacing" type="number" step="10"></span>
+      <span class="fld" title="Line height">Lines <input class="s" id="pLine" type="number" step="0.1"></span>
+      <span class="sep"></span>
+      <span class="fld" title="Bend the text into an arc: right = arch, left = smile">Curve <input type="range" id="pCurve" min="-100" max="100" step="1" style="width:90px"><input class="s" id="pCurveV" type="number" min="-100" max="100" step="5"></span>
+    </div>
+    <div class="pgrp" id="pbPath">
+      <span class="sep"></span>
+      <span class="fld" title="Where the text sits on the path">Place <select class="sel" id="pPlace">
+        <option value="top">Top centre</option><option value="bottom">Bottom centre</option>
+        <option value="start">Start</option><option value="center">Centre</option><option value="end">End</option></select></span>
+      <span class="fld" title="Line the letters stand on">On <select class="sel" id="pVAlign">
+        <option value="baseline">Baseline</option><option value="center">Centre</option><option value="ascender">Ascender</option><option value="descender">Descender</option></select></span>
+      <span class="fld" title="Slide the text along the path (inches)">Offset <input class="s" id="pPathOff"></span>
+      <button class="tog" id="pSide" title="Put the letters on the other side of the path">⇅</button>
+      <button class="btn ghost mini" data-cmd="straighten" title="Take the text off the path">Straighten</button>
+    </div>
+    <div class="pgrp" id="pbXform">
+      <span class="fld">X <input id="pX"></span>
+      <span class="fld">Y <input id="pY"></span>
+      <span class="fld">W <input id="pW"></span>
+      <span class="fld">H <input id="pH"></span>
+      <button class="tog on" id="pRatio" title="Lock aspect ratio">🔗</button>
+      <span class="fld">∠ <input class="s" id="pA"></span>
+      <button class="tog" data-cmd="flipx" title="Flip horizontal">⇋</button>
+      <button class="tog" data-cmd="flipy" title="Flip vertical">⇵</button>
+    </div>
+    <div class="pgrp" id="pbFxCommon">
+      <span class="hint" id="fxInfo"></span>
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-fx="apply" title="Add this effect with the bar's values">Apply</button>
+      <button class="btn ghost mini" data-fx="clear" data-fxneeds="1" title="Remove this effect">Clear</button>
+      <button class="btn ghost mini" data-fx="break" data-fxneeds="1" title="Turn the effect into separate objects (Ctrl+K)">Break apart</button>
+      <span class="sep"></span>
+    </div>
+    <div class="pgrp" id="pbFxShadow">
+      <select class="sel" id="sxPreset" title="Presets"><option value="">Presets…</option><option value="soft">Soft</option><option value="tight">Tight</option><option value="lifted">Lifted</option><option value="hard">Hard</option><option value="glow">Glow</option><option value="floorR">On the floor (right)</option><option value="floorL">On the floor (left)</option><option value="wall">On the wall behind</option></select>
+      <select class="sel" id="sxKind" title="Flat, or standing on an edge (perspective)"><option value="flat">Flat</option><option value="bottom">From bottom</option><option value="top">From top</option><option value="left">From left</option><option value="right">From right</option></select>
+      <span class="fld sx-flat" title="Offset (in)">X <input class="s" id="sxX"></span><span class="fld sx-flat">Y <input class="s" id="sxY"></span>
+      <span class="fld sx-persp" title="Angle from the edge">∠ <input class="s" id="sxAngle" type="number"></span>
+      <span class="fld sx-persp" title="Stretch, % of the object's extent">Stretch <input class="s" id="sxStretch" type="number"></span>
+      <span class="fld sx-persp" title="Fade along the shadow, %">Fade <input class="s" id="sxFade" type="number"></span>
+      <span class="fld" title="Opacity %">Opacity <input class="s" id="sxOpacity" type="number"></span>
+      <span class="fld" title="Feathering (in)">Feather <input class="s" id="sxFeather"></span>
+      <select class="sel" id="sxDir" title="Feather direction"><option value="middle">Middle</option><option value="inside">Inside</option><option value="outside">Outside</option><option value="average">Average</option></select>
+      <select class="sel" id="sxEdges" title="Feather edges"><option value="linear">Linear</option><option value="squared">Squared</option><option value="invsquared">Inverse squared</option><option value="flat">Flat</option></select>
+      <select class="sel" id="sxMerge" title="Merge mode"><option value="multiply">Multiply</option><option value="source-over">Normal</option><option value="screen">Screen</option><option value="overlay">Overlay</option><option value="darken">Darken</option><option value="lighten">Lighten</option><option value="difference">Difference</option></select>
+      <input type="color" id="sxColor" title="Shadow colour" style="width:30px;height:24px;padding:0;border:1px solid var(--line-2);border-radius:4px;background:#1f2024">
+    </div>
+    <div class="pgrp" id="pbFxContour">
+      <div class="seg" id="cxMode"><button data-v="center">To centre</button><button data-v="inside">Inside</button><button data-v="outside">Outside</button></div>
+      <span class="fld" title="Steps">Steps <input class="s" id="cxSteps" type="number" min="1" max="999"></span>
+      <span class="fld" title="Offset between steps (in)">Offset <input class="s" id="cxOffset"></span>
+      <select class="sel" id="cxCorners" title="Corners"><option value="miter">Mitred</option><option value="round">Round</option><option value="bevel">Bevelled</option></select>
+      <select class="sel" id="cxDir" title="Colour direction"><option value="direct">Direct</option><option value="cw">Clockwise</option><option value="ccw">Counterclockwise</option></select>
+      <span class="fld" title="Last step's fill / outline">End <input type="color" id="cxFill" style="width:26px;height:22px;padding:0;border:1px solid var(--line-2)"><input type="color" id="cxStroke" style="width:26px;height:22px;padding:0;border:1px solid var(--line-2)"></span>
+      <span class="fld" title="Object acceleration %">Obj acc <input class="s" id="cxObjAcc" type="number" min="-100" max="100"></span>
+      <span class="fld" title="Colour acceleration %">Col acc <input class="s" id="cxColAcc" type="number" min="-100" max="100"></span>
+    </div>
+    <div class="pgrp" id="pbFxEnvelope">
+      <div class="seg" id="exMode" title="How dragging a node reshapes its sides"><button data-v="straight">Straight</button><button data-v="single">Single arc</button><button data-v="double">Double arc</button><button data-v="unconstrained">Free</button></div>
+      <select class="sel" id="exPreset" title="Presets"><option value="">Presets…</option><option value="arch">Arch</option><option value="bulge">Bulge</option><option value="squeeze">Squeeze</option><option value="flag">Flag</option><option value="perspective">Perspective</option><option value="circle">Circle</option></select>
+      <select class="sel" id="exMapping" title="Mapping"><option value="putty">Putty</option><option value="original">Original</option><option value="horizontal">Horizontal</option><option value="vertical">Vertical</option></select>
+      <label class="fld" title="Map only nodes, so straight lines stay straight"><input type="checkbox" id="exKeep"> Keep lines</label>
+      <button class="btn ghost mini" data-fx="curves" data-fxneeds="1" title="Make the envelope permanent">To curves</button>
+    </div>
+    <div class="pgrp" id="pbFxBlend">
+      <span class="fld" title="Steps">Steps <input class="s" id="bxSteps" type="number" min="1" max="999"></span>
+      <span class="fld" title="Extra rotation of the steps (degrees)">∠ <input class="s" id="bxRot" type="number"></span>
+      <span class="fld" title="Object acceleration %">Obj acc <input class="s" id="bxObjAcc" type="number" min="-100" max="100"></span>
+      <span class="fld" title="Colour acceleration %">Col acc <input class="s" id="bxColAcc" type="number" min="-100" max="100"></span>
+      <select class="sel" id="bxDir" title="Colour blend"><option value="direct">Direct</option><option value="cw">Clockwise</option><option value="ccw">Counterclockwise</option></select>
+      <label class="fld" title="The rotation turns the steps about the middle"><input type="checkbox" id="bxLoop"> Loop</label>
+      <label class="fld" title="Object acceleration changes sizes too"><input type="checkbox" id="bxSizing"> Sizing</label>
+      <button class="btn ghost mini" id="bxPath" data-fxneeds="1" title="Click a curve for the steps to follow">New path…</button>
+      <label class="fld bx-path"><input type="checkbox" id="bxFull"> Full path</label>
+      <label class="fld bx-path"><input type="checkbox" id="bxRotAll"> Rotate all</label>
+      <label class="fld bx-path" title="Steps from the path length"><input type="checkbox" id="bxUseSp"> Spacing <input class="s" id="bxSpacing"></label>
+      <button class="btn ghost mini bx-path" id="bxDetach">Detach path</button>
+    </div>
+    <div class="pgrp" id="pbFxTransp">
+      <select class="sel" id="txType" title="Transparency type"><option value="none">None</option><option value="uniform">Uniform</option><option value="linear">Linear gradient</option><option value="radial">Radial gradient</option><option value="conical">Conical gradient</option><option value="square">Square gradient</option></select>
+      <span class="fld" title="Transparency % (of the chosen node for a gradient)">Transparency <input class="s" id="txAmount" type="number" min="0" max="100"></span>
+      <select class="sel" id="txMerge" title="Merge mode"></select>
+      <select class="sel" id="txTarget" title="Apply to"><option value="both">Fill &amp; outline</option><option value="fill">Fill only</option><option value="outline">Outline only</option></select>
+      <span class="hint">Drag across the object for a gradient · double-click the line to add a node</span>
+    </div>
+    <div class="pgrp" id="pbFxDistort">
+      <div class="seg" id="dxKind"><button data-v="push">Push &amp; pull</button><button data-v="zipper">Zipper</button><button data-v="twister">Twister</button></div>
+      <span class="fld dx-push" title="Amplitude -200..200">Amount <input class="s" id="dxAmount" type="number"></span>
+      <span class="fld dx-zip" title="Amplitude (in)">Amp <input class="s" id="dxAmp"></span>
+      <span class="fld dx-zip" title="Teeth per segment">Freq <input class="s" id="dxFreq" type="number"></span>
+      <label class="fld dx-zip"><input type="checkbox" id="dxRandom"> Random</label><label class="fld dx-zip"><input type="checkbox" id="dxSmooth"> Smooth</label><label class="fld dx-zip"><input type="checkbox" id="dxLocal"> Local</label>
+      <select class="sel dx-tw" id="dxCw"><option value="cw">Clockwise</option><option value="ccw">Counterclockwise</option></select>
+      <span class="fld dx-tw">Turns <input class="s" id="dxTurns" type="number" min="0" max="9"></span>
+      <span class="fld dx-tw">Degrees <input class="s" id="dxDeg" type="number" min="0" max="359"></span>
+      <button class="btn ghost mini" data-fx="centre" data-fxneeds="1" title="Centre the distortion on the object's middle">Centre</button>
+      <button class="btn ghost mini" data-fx="curves" data-fxneeds="1" title="Make the distortion permanent">To curves</button>
+    </div>
+    <div class="pgrp" id="pbNodes">
+      <span class="hint" id="nodeInfo"></span>
+      <span class="sep"></span>
+      <button class="tog" data-node="add" title="Add node (+) — in the middle of the segment, or where the segment was clicked">＋</button>
+      <button class="tog" data-node="del" title="Delete nodes or the chosen segment (Delete)">−</button>
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-node="join" title="Join two end nodes into one">Join</button>
+      <button class="btn ghost mini" data-node="break" title="Break the curve at the node">Break</button>
+      <button class="btn ghost mini" data-node="close" title="Join two end nodes with a straight segment">Close</button>
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-node="line" title="Make the segment straight">To line</button>
+      <button class="btn ghost mini" data-node="curve" title="Make the segment a curve">To curve</button>
+      <span class="sep"></span>
+      <button class="tog nodetype" data-node="cusp" title="Cusp (C)"><svg viewBox="0 0 24 24"><path d="M3 18 12 6l9 12"/><rect x="10" y="4" width="4" height="4" fill="currentColor"/></svg></button>
+      <button class="tog nodetype" data-node="smooth" title="Smooth (S)"><svg viewBox="0 0 24 24"><path d="M3 18C6 8 18 8 21 18"/><path d="M5 10h14" stroke-dasharray="2 2"/><circle cx="12" cy="10" r="2" fill="currentColor"/></svg></button>
+      <button class="tog nodetype" data-node="symmetric" title="Symmetrical (Y)"><svg viewBox="0 0 24 24"><path d="M3 18C5 6 19 6 21 18"/><path d="M4 9.5h16" stroke-dasharray="2 2"/><path d="m12 7.5 2 2-2 2-2-2z" fill="currentColor"/></svg></button>
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-node="reverse" title="Reverse the direction of the subpath">Reverse</button>
+      <button class="btn ghost mini" data-node="extract" title="Make the subpath its own curve">Extract</button>
+      <button class="btn ghost mini" data-node="all" title="Select all nodes (Ctrl+A)">All nodes</button>
+    </div>
+    <div class="pgrp" id="pbShape">
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-cmd="shape:weld">Weld</button>
+      <button class="btn ghost mini" data-cmd="shape:trim">Trim</button>
+      <button class="btn ghost mini" data-cmd="shape:intersect">Intersect</button>
+      <button class="btn ghost mini" data-cmd="shape:simplify">Simplify</button>
+      <button class="btn ghost mini" data-cmd="shape:combine">Combine</button>
+    </div>
+    <div class="pgrp" id="pbBreak">
+      <span class="sep"></span>
+      <button class="btn ghost mini" data-cmd="shape:breakapart">Break apart</button>
+    </div>
+  </div>
+
+  <!-- TOOLBOX -->
+  <div class="tools" id="tools">
+    <button class="tool on" data-tool="pick"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg><span class="tip">Pick tool (V)</span></button>
+    <button class="tool" data-tool="shape"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z" fill="currentColor" stroke="none" opacity=".85"/><rect x="15" y="15" width="5" height="5" fill="none"/></svg><span class="tip">Shape tool — edit nodes (F10)</span></button>
+    <button class="tool" data-tool="soon:Crop / Knife"><svg viewBox="0 0 24 24"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg><span class="soon"></span><span class="tip">Crop · Knife — later</span></button>
+    <button class="tool" data-tool="zoom"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m20 20-5.5-5.5"/></svg><span class="tip">Zoom (Z) — click in, ⌥-click out</span></button>
+    <hr>
+    <button class="tool" data-tool="free"><svg viewBox="0 0 24 24"><path d="M3 17c3-6 5-10 8-10s2 8 5 8 3-4 5-6"/></svg><span class="tip">Freehand (F5)</span></button>
+    <button class="tool" data-tool="pen"><svg viewBox="0 0 24 24"><path d="M12 3 5 10l3 9h8l3-9z"/><circle cx="12" cy="12" r="1.5"/></svg><span class="tip">Pen / polyline (P) — click points, double-click to end</span></button>
+    <button class="tool" data-tool="brush"><svg viewBox="0 0 24 24"><path d="M4 20c4-1 6-4 8-8s5-7 8-8c-1 3-4 6-8 8s-7 4-8 8z"/></svg><span class="tip">Artistic media brush (I)</span></button>
+    <hr>
+    <button class="tool" data-tool="rect"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg><span class="tip">Rectangle (F6 / R)</span></button>
+    <button class="tool" data-tool="ellipse"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg><span class="tip">Ellipse (F7 / E)</span></button>
+    <button class="tool" data-tool="star"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.4 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg><span class="tip">Star (S)</span></button>
+    <button class="tool" data-tool="line"><svg viewBox="0 0 24 24"><path d="M4 20 20 4"/></svg><span class="tip">Line (L)</span></button>
+    <button class="tool" data-tool="text"><svg viewBox="0 0 24 24"><path d="M5 5h14M12 5v14M9 19h6"/></svg><span class="tip">Text (F8 / T)</span></button>
+    <hr>
+    <button class="tool" data-tool="fxshadow"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="12" height="12"/><path d="M15 7h5v13H7v-5" fill="currentColor" opacity=".35" stroke="none"/></svg><span class="tip">Drop shadow — drag from an object (from an edge: perspective)</span></button>
+    <button class="tool" data-tool="fxcontour"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6"/><rect x="6" y="6" width="12" height="12" opacity=".7"/><rect x="3" y="3" width="18" height="18" opacity=".45"/></svg><span class="tip">Contour — drag away from an object (outside) or into it (inside)</span></button>
+    <button class="tool" data-tool="fxenvelope"><svg viewBox="0 0 24 24"><path d="M4 7c5-4 11-4 16 0v10c-5 4-11 4-16 0z"/><circle cx="4" cy="7" r="1.5" fill="currentColor"/><circle cx="20" cy="7" r="1.5" fill="currentColor"/><circle cx="4" cy="17" r="1.5" fill="currentColor"/><circle cx="20" cy="17" r="1.5" fill="currentColor"/></svg><span class="tip">Envelope — click an object, drag its frame's nodes</span></button>
+    <button class="tool" data-tool="fxdistort"><svg viewBox="0 0 24 24"><path d="M12 3 14 9l6-2-4 5 4 5-6-2-2 6-2-6-6 2 4-5-4-5 6 2z"/></svg><span class="tip">Distort — push &amp; pull, zipper, twister: drag on an object</span></button>
+    <button class="tool" data-tool="fxblend"><svg viewBox="0 0 24 24"><circle cx="5" cy="17" r="3"/><circle cx="10" cy="13" r="3" opacity=".75"/><circle cx="15" cy="9" r="3" opacity=".55"/><rect x="16" y="2" width="6" height="6" fill="currentColor"/></svg><span class="tip">Blend — drag from one object to another</span></button>
+    <button class="tool" data-tool="fxtransp"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 3h18v18z" fill="currentColor" opacity=".4" stroke="none"/></svg><span class="tip">Transparency — uniform or drag across an object for a gradient</span></button>
+    <button class="tool" data-tool="cmd:opacity" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" opacity=".35"/></svg><span class="tip">Transparency</span></button>
+    <button class="tool" data-tool="eyedrop"><svg viewBox="0 0 24 24"><path d="m14 4 6 6-2 2-6-6z"/><path d="M12 8 4 16v4h4l8-8"/></svg><span class="tip">Eyedropper — click an object to copy its colours onto the selection</span></button>
+    <button class="tool" data-tool="cmd:fill"><svg viewBox="0 0 24 24"><path d="m6 11 6-6 7 7-6 6z"/><path d="M19 15s2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 2-4 2-4z"/></svg><span class="tip">Fill &amp; gradient</span></button>
+    <div class="swatchpair" title="Fill / Outline (left-click palette = fill, right-click = outline)"><span class="f" id="swF"></span><span class="s" id="swS"></span></div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="work">
+    <div class="corner">in</div>
+    <canvas class="ruler" id="rulerH"></canvas>
+    <canvas class="ruler" id="rulerV"></canvas>
+    <div class="stage" id="stage">
+      <div class="shirt-wrap" id="wrap">
+        <svg class="shirt" id="shirt" viewBox="0 0 400 420" aria-hidden="true">
+          <defs>
+            <linearGradient id="shade" x1="0" x2="1">
+              <stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".22" stop-color="#000" stop-opacity="0"/>
+              <stop offset=".78" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/>
+            </linearGradient>
+          </defs>
+          <path id="teeBody" fill="#1f2937" d="M140 20c10 18 32 28 60 28s50-10 60-28l78 30 52 70-52 36-24-18v262c0 8-6 12-14 12H100c-8 0-14-4-14-12V138l-24 18-52-36 52-70z"/>
+          <path fill="url(#shade)" d="M140 20c10 18 32 28 60 28s50-10 60-28l78 30 52 70-52 36-24-18v262c0 8-6 12-14 12H100c-8 0-14-4-14-12V138l-24 18-52-36 52-70z"/>
+          <path id="neck" d="M140 20c10 18 32 28 60 28s50-10 60-28" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="6"/>
+          <path d="M86 138v-30M314 138v-30" stroke="#000" stroke-opacity=".15" stroke-width="2"/>
+        </svg>
+        <div class="print-area" id="pa">
+          <span class="tag" id="paTag">Print area · 12 × 16 in</span>
+          <div class="guide v" id="gV"></div><div class="guide h" id="gH"></div>
+        </div>
+        <div id="cwrap"><canvas id="c"></canvas></div>
+      </div>
+    </div>
+    <div class="pagetabs" id="pageTabs"><button class="on" data-page="front">Front</button><button data-page="back">Back</button></div>
+    <div class="focusbar" id="focusBar"></div>
+    <div class="clipbar" id="clipBar">
+      <span class="hint">Clip frame</span>
+      <button class="btn ghost mini" id="cbEdit" title="Take the contents out to edit them (the rest fades)">Edit</button>
+      <button class="btn primary mini" id="cbFinish" title="Put the contents back in the frame">Finish</button>
+      <button class="btn ghost mini" id="cbSelect" title="Select the contents (round handles)">Select contents</button>
+      <button class="btn ghost mini" id="cbExtract" title="The contents become ordinary objects; the frame stays">Extract</button>
+      <button class="tog" id="cbLock" title="Lock contents to frame: on, they move with it">🔗</button>
+      <button class="tog" id="cbMask" title="Opacity mask: the frame's brightness shows the contents">◐</button>
+      <button class="tog" id="cbInvert" title="Invert mask">⇄</button>
+      <select class="sel" id="cbFit" title="Fit the contents"><option value="">Fit…</option><option value="center">Center contents</option><option value="fit">Fit proportionally</option><option value="fill">Fill frame proportionally</option><option value="stretch">Stretch to fill</option></select>
+    </div>
+    <div class="penhint" id="penHint">Pen: click to add points · click the first point to close · double-click or Enter to finish · Esc to cancel</div>
+    <div class="floating viewtabs" id="shirtTabs"></div>
+  </div>
+
+  <!-- DOCKER -->
+  <div class="dock">
+    <div class="dtabs">
+      <button class="on" data-d="objects">Objects</button>
+      <button data-d="props">Properties</button>
+      <button data-d="assets">Assets</button>
+    </div>
+
+    <div class="dbody on" id="d-objects">
+      <div class="sec">
+        <h4><span id="layersTitle">Front · Objects</span>
+          <span class="acts">
+            <button class="ib" title="Bring forward" data-cmd="fwd">↑</button>
+            <button class="ib" title="Send backward" data-cmd="back">↓</button>
+            <button class="ib" title="Duplicate" data-cmd="dup">⧉</button>
+            <button class="ib" title="Group / ungroup" data-cmd="togglegroup">▣</button>
+            <button class="ib" title="Delete" data-cmd="del">🗑</button>
+          </span>
+        </h4>
+        <div id="layers"></div>
+        <div class="disabled-note">Drag rows to reorder · double-click a name to rename</div>
+      </div>
+
+      <div class="sec">
+        <h4>Align &amp; distribute</h4>
+        <div style="display:flex;gap:2px;flex-wrap:wrap">
+          <button class="ib" title="Align left" data-align-obj="l">⫷</button>
+          <button class="ib" title="Align centers horizontally" data-align-obj="ch">⫼</button>
+          <button class="ib" title="Align right" data-align-obj="r">⫸</button>
+          <button class="ib" title="Align top" data-align-obj="t">⊤</button>
+          <button class="ib" title="Align centers vertically" data-align-obj="cv">⊝</button>
+          <button class="ib" title="Align bottom" data-align-obj="b">⊥</button>
+          <span class="sep"></span>
+          <button class="ib" title="Center in print area (P)" data-cmd="center">◎</button>
+        </div>
+        <div class="disabled-note">One object aligns to the print area; several align to each other.</div>
+      </div>
+
+      <div class="sec">
+        <h4>Shaping</h4>
+        <div class="grid2 shapegrid">
+          <button class="btn ghost" data-cmd="shape:weld" title="Merge the selected shapes into one outline"><svg viewBox="0 0 24 24"><path d="M3 9a6 6 0 0 1 11-3.3A6 6 0 1 1 9 18 6 6 0 0 1 3 9z" fill="currentColor" opacity=".55"/></svg>Weld</button>
+          <button class="btn ghost" data-cmd="shape:trim" title="Cut the bottom shape with the shapes above it (they stay)"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6" fill="currentColor" opacity=".55"/><circle cx="15" cy="12" r="6" fill="var(--panel)" stroke="currentColor"/></svg>Trim</button>
+          <button class="btn ghost" data-cmd="shape:intersect" title="New shape from where the selected shapes overlap"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/><path d="M12 7a6 6 0 0 1 0 10 6 6 0 0 1 0-10z" fill="currentColor" opacity=".7"/></svg>Intersect</button>
+          <button class="btn ghost" data-cmd="shape:simplify" title="Remove the hidden parts of shapes that are covered by others"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="11" height="11" fill="currentColor" opacity=".35"/><circle cx="15" cy="10" r="6" fill="currentColor" opacity=".7"/></svg>Simplify</button>
+          <button class="btn ghost" data-cmd="shape:fmb" title="Keep the front shape minus everything behind it"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><path d="M15 6a6 6 0 1 1-3 11.2A6 6 0 0 0 12 6.8 6 6 0 0 1 15 6z" fill="currentColor" opacity=".7"/></svg>Front − back</button>
+          <button class="btn ghost" data-cmd="shape:bmf" title="Keep the back shape minus everything in front of it"><svg viewBox="0 0 24 24"><circle cx="15" cy="12" r="6"/><path d="M9 6a6 6 0 1 0 3 11.2A6 6 0 0 1 12 6.8 6 6 0 0 0 9 6z" fill="currentColor" opacity=".7"/></svg>Back − front</button>
+          <button class="btn ghost" data-cmd="shape:combine" title="Join into one object; overlaps become holes"><svg viewBox="0 0 24 24"><path fill-rule="evenodd" fill="currentColor" opacity=".6" d="M3 12a6 6 0 1 0 12 0 6 6 0 1 0-12 0M9 12a6 6 0 1 0 12 0 6 6 0 1 0-12 0"/></svg>Combine</button>
+          <button class="btn ghost" data-cmd="shape:breakapart" title="Split a multi-part shape into separate objects"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="4" fill="currentColor" opacity=".55"/><circle cx="17" cy="12" r="4" fill="currentColor" opacity=".55"/></svg>Break apart</button>
+        </div>
+        <div class="disabled-note">The bottom-most selected shape is the target: results take its colours. Text works too; images can’t be shaped.</div>
+      </div>
+    </div>
+
+    <div class="dbody" id="d-props">
+      <div id="propsEmpty" class="empty">Select an object to edit its fill, outline and effects. Palette clicks with nothing selected set the default colours for new objects.</div>
+      <div id="propsBody">
+        <div class="sec">
+          <h4>Fill</h4>
+          <div class="seg" id="fillType" style="margin-bottom:8px"><button data-ft="solid" class="on">Solid</button><button data-ft="gradient">Gradient</button><button data-ft="none">None</button></div>
+          <div class="row"><label>Color</label><input type="color" id="fColor"><input type="text" id="fHex"></div>
+          <div class="row" id="gradRow"><label>To</label><input type="color" id="fColor2"><select id="gDir"><option value="v">Top → bottom</option><option value="h">Left → right</option><option value="d">Diagonal</option></select></div>
+        </div>
+        <div class="sec">
+          <h4>Outline</h4>
+          <div class="row"><label>Color</label><input type="color" id="sColor"><input type="text" id="sHex"></div>
+          <div class="row"><label>Width</label><input type="number" id="sWidth" min="0" step="0.5"><span class="hint">pt</span></div>
+          <div class="row"><label>Style</label><select id="sDash"><option value="">Solid</option><option value="6,4">Dashed</option><option value="1,4">Dotted</option></select></div>
+          <div class="row"><label>Join</label><select id="sJoin"><option value="miter">Miter</option><option value="round">Round</option><option value="bevel">Bevel</option></select></div>
+        </div>
+        <div class="sec">
+          <h4>Object</h4>
+          <div class="row"><label>Opacity</label><input type="range" id="oOpacity" min="0" max="100"><span id="oOpacityV" style="width:34px;text-align:right">100%</span></div>
+          <div class="row"><label>Blend</label><select id="oBlend">
+            <option value="source-over">Normal</option><option value="multiply">Multiply</option><option value="screen">Screen</option>
+            <option value="overlay">Overlay</option><option value="darken">Darken</option><option value="lighten">Lighten</option><option value="difference">Difference</option></select></div>
+          <div class="row"><label>Shadow</label><select id="oShadow"><option value="off">Off</option><option value="soft">Soft</option><option value="tight">Tight</option><option value="lifted">Lifted</option><option value="hard">Hard</option><option value="glow">Glow</option><option value="floorR">On the floor (right)</option><option value="floorL">On the floor (left)</option><option value="wall">On the wall behind</option><option value="custom" disabled>Custom (Drop shadow tool)</option></select></div>
+          <div class="row" id="radiusRow"><label>Corners</label><input type="number" id="oRadius" min="0" step="1"><span class="hint">px</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <h4>Print checks · whole page</h4>
+        <div id="checks"></div>
+      </div>
+    </div>
+
+    <div class="dbody" id="d-assets">
+      <div class="sec">
+        <h4>Add</h4>
+        <div class="grid2">
+          <button class="card" data-cmd="import"><span class="fmt" style="background:#6366f1">IMG</span><span><b>Upload</b><small>PNG, JPG, SVG</small></span></button>
+          <button class="card" data-cmd="tool:text"><span class="fmt" style="background:#0ea5e9">Aa</span><span><b>Text</b><small>12 Google Fonts</small></span></button>
+        </div>
+      </div>
+      <div class="sec">
+        <h4>Shapes</h4>
+        <div class="grid2" id="shapeLib"></div>
+      </div>
+      <div class="sec">
+        <h4>Text styles</h4>
+        <div class="grid2">
+          <button class="card" data-tpl="vintage" style="height:60px;justify-content:center;font-family:'Bebas Neue';font-size:22px;color:#f97316">VINTAGE</button>
+          <button class="card" data-tpl="script" style="height:60px;justify-content:center;font-family:Pacifico;font-size:15px;color:#fde68a">Retro Script</button>
+          <button class="card" data-tpl="college" style="height:60px;justify-content:center;font-family:'Rubik Mono One';font-size:13px;color:#fff;-webkit-text-stroke:1px #ef4444">COLLEGE</button>
+          <button class="card" data-tpl="marker" style="height:60px;justify-content:center;font-family:'Permanent Marker';font-size:16px;color:#22c55e">Street tag</button>
+        </div>
+      </div>
+      <div class="sec">
+        <h4>Page</h4>
+        <div class="grid2">
+          <button class="card" data-cmd="sample"><span class="fmt" style="background:#f97316">★</span><span><b>Sample</b><small>Load demo design</small></span></button>
+          <button class="card" data-cmd="clear"><span class="fmt" style="background:#4b5563">∅</span><span><b>Blank</b><small>Clear this page</small></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOR PALETTE -->
+  <div class="pal" id="pal"><span class="lbl" title="Left-click = fill · Right-click = outline">Palette · L fill / R outline</span><div class="none" id="palNone" title="No fill (right-click: no outline)"></div></div>
+
+  <!-- STATUS BAR -->
+  <div class="status">
+    <span id="stSel">Nothing selected</span>
+    <span>Cursor: <b id="stCur">—</b></span>
+    <span class="spacer"></span>
+    <span class="chip">Fill <i id="stFill"></i> <b id="stFillT">—</b></span>
+    <span class="chip">Outline <i id="stStroke"></i> <b id="stStrokeT">—</b></span>
+    <span>Page: <b id="stPage">Front</b> · <b>12 × 16 in · RGB</b></span>
+  </div>
+</div>
+
+<!-- EXPORT DIALOG -->
+<div class="modal" id="export">
+  <div class="dlg">
+    <div class="pv"><img id="exPreview" alt="Export preview"></div>
+    <div class="opts">
+      <h3>Export design</h3>
+      <p class="sub" id="exSub">Front · print area only · shirt not included</p>
+      <div class="fmts" id="exFmts">
+        <button data-f="png" class="on">PNG</button><button data-f="jpg">JPG</button><button data-f="svg">SVG</button>
+        <button data-f="psd">PSD</button><button data-f="pdf">PDF</button><button data-f="mockup">Mockup</button>
+      </div>
+      <div class="row"><label>DPI</label><select id="exDpi"><option>72</option><option>150</option><option selected>300</option></select></div>
+      <div class="row"><label>Pixels</label><input type="text" id="exPx" readonly></div>
+      <label class="ck"><input type="checkbox" id="exTransp" checked> Transparent background</label>
+      <label class="ck"><input type="checkbox" id="exLayers"> Also save every layer as its own PNG</label>
+      <label class="ck"><input type="checkbox" id="exShirt" checked> Add hidden shirt-colour layer (for previewing in Photoshop)</label>
+      <label class="ck"><input type="checkbox" id="exOutline"> Convert all text to outlines (no fonts needed to open)</label>
+      <label class="ck"><input type="checkbox" id="exAll"> Export every page (Front &amp; Back)</label>
+      <div class="fmtnote" id="exNote"></div>
+      <div class="fmtnote dest" id="exDest"></div>
+      <div class="foot">
+        <button class="btn ghost" id="exCancel">Cancel</button>
+        <button class="btn primary" id="exGo">Export PNG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOME / PROJECTS -->
+<div class="modal home" id="home">
+  <div class="homebox">
+    <div class="homehead">
+      <span class="logo"><i></i>Tee Studio</span>
+      <span class="hint">T-shirt design studio · works offline, no install</span>
+      <span style="flex:1"></span>
+      <button class="btn ghost" id="homeClose">Back to design</button>
+    </div>
+    <div id="homeFolder"></div>
+    <div class="homecols">
+      <div class="homenew">
+        <h4>Start a design</h4>
+        <label class="hint" for="homeName">Design name</label>
+        <input type="text" id="homeName" placeholder="e.g. Summer drop – Stay Wild">
+        <button class="btn primary" id="homeNew">New blank design</button>
+        <button class="btn ghost" id="homeSample">Start from the sample</button>
+        <button class="btn ghost" id="homeOpenFile">Open a .tee.json file…</button>
+        <button class="btn ghost resume" id="homeResume">Continue “<span id="homeResumeName"></span>”</button>
+      </div>
+      <div class="homelist">
+        <h4>My designs <span class="hint" id="homeCount"></span></h4>
+        <div class="pgrid" id="homeList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileImport" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+<input type="file" id="fileOpen" accept=".json,.tee.json,application/json" hidden>
+<div class="toast" id="toast"></div>
+<div class="narrow"><b>Tee Studio needs a wider window</b>Like CorelDRAW, the editor is built for a desktop screen. Make this window at least 1000 px wide, or open the file in Chrome.</div>
+
+<script src="app/js/editor.js"></script>
+<script src="app/js/shaping.js"></script>
+<script src="app/js/textcurves.js"></script>
+<script src="app/js/nodes.js"></script>
+<script src="app/js/pick.js"></script>
+<script src="app/js/effects.js"></script>
+<script src="app/js/effects-ui.js"></script>
+<script src="app/js/clip.js"></script>
+<script src="app/js/blend.js"></script>
+<script src="app/js/export.js"></script>
+<script src="app/js/storage.js"></script>
+<script src="app/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# your own designs and exports stay on your machine
+my-designs/*
+!my-designs/README.txt
+.DS_Store

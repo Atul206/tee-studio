@@ -1,0 +1,182 @@
+TEE STUDIO — T-shirt design studio that runs from a folder
+==========================================================
+
+START
+  1. Double-click  index.html  (use Google Chrome or Microsoft Edge).
+     No install, no server, no internet needed — everything is inside this folder.
+  2. Click "Choose designs folder" and pick the  my-designs  folder next to index.html
+     (any other folder works too). Chrome remembers it; on later visits it may ask
+     you to click "Reconnect" once.
+  3. Start a new design, start from the sample, or open one from "My designs".
+
+SAVING
+  - Work saves automatically into the designs folder while you draw (see the
+    "✓ Saved" note at the top right). ⌘/Ctrl+S saves immediately.
+  - File > My designs / New  shows every design in the folder.
+  - Click the design name at the top to rename it.
+  - Firefox / Safari can't write to folders: there, designs are kept inside the
+    browser and exports download to your Downloads folder.
+
+EXPORT  (Export button, top right)
+  PNG     print-ready, transparent background, 72 / 150 / 300 DPI (300 DPI = 3600 × 4800 px)
+  PSD     Photoshop file, one layer per object, groups as layer folders, names,
+          opacity, blend modes and hidden layers kept. Optional: every layer as
+          its own PNG, plus a hidden shirt-colour layer for previewing.
+          Text arrives as pixel layers (not editable type) at the chosen DPI.
+  PDF     12 × 16 in page at the chosen DPI, for print shops
+  SVG     vector, fonts embedded, opens in Illustrator / Inkscape / CorelDRAW
+  JPG     flat on white, for sharing
+  Mockup  the design on the chosen shirt colour, 2000 × 2100 px
+
+PICK TOOL  (V — works like CorelDRAW / TraceDraw)
+  Click again on a selected object   rotate/slant handles: corner arrows turn,
+                     side arrows slant, the ring is the centre of rotation (drag
+                     it to turn about another point; double-click it to reset)
+  Corner handle      scale in proportion   Shift: from the centre
+                     Ctrl: whole 100 % steps   Alt: freely (no proportion)
+  Side handle        stretch; drag past the other side to mirror
+  Ctrl while moving  keep the move horizontal or vertical
+  Turning/slanting   Ctrl: 15° steps
+  Space mid-drag     drop a copy where the object is and keep going
+  Right-click mid-drag  the original stays, a copy takes the change
+  Esc mid-drag       cancel
+  Right-button drag  shows where it goes, then: Move Here, Copy Here,
+                     Copy Fill / Outline / All Properties onto the object below
+  Right-click        context menu     Alt+click: the object underneath
+  Alt + marquee      also take objects the frame only touches
+  Tab / Shift+Tab    next / previous object      +  duplicate in place
+  Ctrl+D             duplicate; again repeats what you did to the copy
+                     (move it 2 in, Ctrl+D → the next one is 2 in further)
+  Arrows             nudge 0.1 in · Shift 0.2 in · Ctrl 0.01 in
+
+GROUPS, CLIP FRAMES (POWERCLIP) & FOCUS MODE
+  Ctrl+click       the object inside a group under the pointer (round handles);
+                   move, scale, colour or delete just that one. Ctrl+click again
+                   goes one group deeper. Click elsewhere and the group closes.
+  Double-click a group or clip frame   Focus mode: edit what's inside, the rest
+                   fades to 20 % and can't be picked. The bar at the top shows
+                   where you are (click a step to go back up, ✕ to leave).
+                   Esc with nothing selected goes up one level.
+  Place inside frame (Object menu / right-click): select the artwork, choose
+                   Place inside frame…, click the shape (or text!) to hold it.
+                   The contents are clipped to its outline; its outline is drawn
+                   on top. Great for a photo inside big letters.
+  Drag onto a frame holding W = put inside · holding K = replace its contents.
+  Clip frame bar (top-left when a frame is selected):
+                   Edit (contents shown whole, Finish puts them back),
+                   Select contents, Extract, 🔗 lock contents to the frame
+                   (off: the frame moves alone), Fit: centre / fit / fill /
+                   stretch. Colours you pick go to the frame, not the contents.
+  Create empty clip frame turns a shape into a placeholder to drop art into.
+  Opacity mask (◐ on the bar): the frame is no longer drawn — its brightness
+                   shows the contents (white = visible, black = hidden; ⇄ inverts).
+                   Fill the frame with a white→black gradient for soft fades.
+  Saving, undo and every export always see groups closed; Ctrl+click and
+  Focus mode never change your file.
+
+LIVE EFFECTS  (four tools in the toolbox, also in the Effects menu)
+  Effects stay live: change, move, scale or edit the object and the effect
+  follows. Each tool's settings are on the property bar (Apply / Clear /
+  Break apart). Break apart (Ctrl+K) turns an effect into real objects.
+  Drop shadow  drag from the middle of an object = flat shadow (offset = drag);
+               drag from near an edge = perspective shadow standing on it.
+               Handles: white square start, coloured square end, bar = opacity.
+               Bar: presets (Soft, Tight, Lifted, Hard, Glow, On the floor,
+               On the wall), offset/angle/stretch/fade, opacity, feather,
+               feather direction & edges, merge mode (Multiply by default),
+               colour. The Properties panel's Shadow list uses the same presets.
+  Contour      drag outward from an object = outside, inward = inside;
+               steps, offset, mitred/round/bevelled corners, colours blend to
+               the end fill/outline (direct or round the colour wheel),
+               object and colour acceleration. Great for sticker outlines.
+  Envelope     click an object for a frame of 8 nodes; drag nodes (Straight,
+               Single arc, Double arc or Free mode). Double-click the frame
+               to add a node, a node to remove it. Presets: Arch, Bulge,
+               Squeeze, Flag, Perspective, Circle. Mapping: Putty, Original,
+               Horizontal, Vertical; Keep lines. Works on text (arched titles).
+  Distort      drag on an object: Push & pull (drag right = push, left = pull),
+               Zipper (amplitude, frequency, random, smooth, local) or
+               Twister (turns and degrees). Drag the diamond to move the centre.
+  Blend        drag from one object to another: live in-between steps (depth
+               for titles: blend text to a darker copy behind it). Bar: steps,
+               rotation, object/colour acceleration, colour direction, Loop,
+               Sizing, New path… (steps follow a curve; Full path, Rotate all,
+               Spacing). Move either object and the steps follow; delete the
+               end and the blend goes. Break apart = steps become a group.
+  Transparency Uniform (= opacity) or a Linear / Radial / Conical / Square
+               gradient: drag across the object to set it, drag its nodes,
+               double-click the line to add a node (or a node to remove it).
+               Merge modes (Multiply, Screen, Add, Overlay…), and Apply to
+               fill only / outline only / both.
+  "To curves" (or Convert to curves) makes an envelope or distortion permanent;
+  Weld/Trim use the shape as drawn. Exports: PNG/PDF/mockup as drawn; PSD
+  layers include the effect; SVG gets contours and warps as paths and flat
+  shadows as blur filters.
+
+SNAPPING & ALIGNMENT GUIDES  (magnet and guide buttons in the top bar)
+  Moving, scaling and drawing snap to other objects' edges and centres and to
+  the print area (within 10 screen pixels), shown by magenta lines.
+  Equal spacing: a shape snaps halfway between its neighbours, or to the gap
+  they already keep. Equal sizes: resizing snaps to another object's width or
+  height. Alt+Q snapping on/off · Alt+Shift+A guides on/off.
+
+USEFUL KEYS
+  V pick · R rectangle · E ellipse · S star · L line · P pen · F freehand
+  B brush · T text · I eyedropper · Z zoom · F9 mockup preview
+  ⌘/Ctrl: Z undo · ⇧Z redo · D duplicate · G group · ⇧G ungroup · C/V copy/paste
+  Delete removes · Esc cancels
+  Palette: left-click = fill, right-click = outline
+
+SHAPING  (Objects panel › Shaping, the Object menu, or the bar at the top
+          when 2+ shapes are selected — just like CorelDRAW)
+  Weld             merge the selected shapes into one outline
+  Trim             cut the bottom shape with the shapes above it (cutters stay)
+  Intersect        new shape from the overlap (originals stay)
+  Simplify         remove the parts of each shape hidden behind shapes above it
+  Front − back     keep the front shape minus everything behind it
+  Back − front     keep the back shape minus everything in front of it
+  Combine          join into one object; overlaps become holes
+  Break apart      split a multi-part shape into separate objects
+  Convert to curves  (Object menu) turns a rectangle/ellipse/star into an editable path
+  The bottom-most selected shape is the "target": results take its colours.
+  Works on shapes, text, pen/freehand paths, groups and imported SVGs
+  (text is turned into its letter outlines). Photos can't be shaped.
+
+SHAPE TOOL — NODE EDITING  (F10, second button in the toolbox)
+  Click a curve to see its nodes (□ cusp, ○ smooth, ◇ symmetrical, ▲ start).
+  A rectangle, ellipse, star, polygon or line: double-click it to make it a curve.
+  Text: Object › Convert to curves first.
+  Click node           choose it      Ctrl+click add/remove   Shift+click a run
+  Drag on empty space  marquee        Tab / Shift+Tab next/previous   Ctrl+A all
+  Drag a node          move the chosen nodes (Ctrl or Shift: straight only)
+  Drag a handle        reshape; smooth nodes keep handles in line,
+                       symmetrical also equal length (Ctrl/Shift: 15° steps)
+  Click a segment      choose it; drag it to bend (the point you grab follows)
+  Double-click         on a segment: add a node   on a node: delete it
+  + / −  Delete        add node / delete nodes (or the chosen segment) — the
+                       curve is refitted so it keeps its shape
+  C  S  Y              cusp↔smooth, symmetrical↔smooth, symmetrical
+  Arrows               nudge nodes 0.1 in (Shift 1 in, Ctrl 0.01 in)
+  Bar / right-click    Join, Break, Close (extend to close), To line,
+                       To curve, Reverse, Extract subpath
+  Drop an end node onto another end node to join them.
+
+TEXT ON A CURVE
+  Curve slider   (property bar, text selected) bends one line of text into an
+                 arc: right = arch, left = smile. It re-fits as you type.
+  Fit text to path  (Text menu) select a text and a shape or line (Shift-click
+                 both). On a closed shape the text sits centred on top, upright
+                 and outside. The bar then offers Place (top centre, bottom
+                 centre, start, centre, end), On (baseline, centre, ascender,
+                 descender), Offset along the path, ⇅ flip side and Straighten.
+  Convert to curves (Text or Object menu) turns text into editable outlines —
+                 every letter stays its own piece, no fonts needed any more.
+  SVG export can also convert all text to outlines (tick the option); text on a
+  curve is always exported as outlines.
+
+SHARING THE APP
+  Zip or copy the whole tee-studio folder. Keep these together:
+  index.html, app/, lib/, fonts/  (my-designs/ holds your own work).
+
+Not built yet: stretch/rotate/reflect nodes, elastic mode, reduce nodes,
+dragging text along its path with the mouse, editable text layers in PSD.
