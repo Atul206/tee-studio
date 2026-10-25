@@ -8,11 +8,15 @@ Exports print-ready **PNG (300 DPI, transparent)**, **layered PSD** (one Photosh
 
 ## Try it
 
+**Online:** open **https://atul206.github.io/tee-studio/** in Chrome or Edge — nothing to install.
+
+**Offline:**
+
 1. Download this repository (**Code → Download ZIP**) and unzip it.
 2. Open `index.html` in **Chrome** or **Edge**.
 3. Click **Choose designs folder** and pick the included `my-designs` folder — your work saves there automatically as `.tee.json` files, exports go to `my-designs/exports/`.
 
-Firefox and Safari work too, but can't write to folders: designs are kept in the browser and exports download instead.
+Online, click **Choose designs folder** and pick any folder on your computer — your work is saved there, not on a server. Firefox and Safari work too, but can't write to folders: designs are kept in the browser and exports download instead.
 
 Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 
