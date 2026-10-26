@@ -5,7 +5,7 @@
    node.out is set (the next node's .in is set with it), otherwise a straight line. A closed curve whose last
    segment ends on its first node holds that node once. */
 
-const PICK = 6;   // screen pixels
+const PICK = COARSE ? 14 : 6;   // screen pixels (wider for fingers)
 
 const Nodes = {
   obj: null, idx: -1, subs: [], sel: new Set(), last: null, seg: null, drag: null, hover: null, menu: null,

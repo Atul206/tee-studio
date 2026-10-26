@@ -353,7 +353,7 @@ canvas.on('mouse:down', o => {
   const round = (ctx, left, top, s, o) => {
     const target = o.type === 'activeSelection' ? o.getObjects()[0] : o;
     if (!(target && target.__focus && target.__focus.auto)) return sq(ctx, left, top, s, o);
-    ctx.save(); ctx.beginPath(); ctx.arc(left, top, 4.5, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.arc(left, top, COARSE ? 7 : 4.5, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
   };
   ['tl', 'tr', 'bl', 'br', 'ml', 'mr', 'mt', 'mb'].forEach(k => { Pick.SCALE[k].render = round; });
 })();

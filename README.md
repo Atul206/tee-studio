@@ -8,7 +8,7 @@ Exports print-ready **PNG (300 DPI, transparent)**, **layered PSD** (one Photosh
 
 ## Try it
 
-**Online:** open **https://atul206.github.io/tee-studio/** in Chrome or Edge — nothing to install.
+**Online:** open **https://atul206.github.io/tee-studio/** — nothing to install. Works on desktop (Chrome/Edge best), tablets and phones: the layout adapts, pinch to zoom, long-press for menus.
 
 **Offline:**
 
@@ -24,6 +24,7 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 
 | Area | Features |
 |---|---|
+| Devices | Desktop, tablet and phone layouts; pinch-zoom and two-finger pan, long-press menus, double-tap, larger touch handles |
 | Workspace | Menu bar, context property bar, toolbox, rulers in inches, colour palette (left-click fill, right-click outline), layers panel, 12 × 16 in print area on a T-shirt mockup (7 shirt colours, front and back pages) |
 | Drawing | Rectangle, ellipse, star, line, pen, freehand, brush, text with 12 embedded Google Fonts |
 | Pick tool | Second-click rotate/skew with a movable centre, Shift/Ctrl/Alt handle modifiers, Space drops a copy, right-drag menu, Alt+click dig, smart duplicate, snapping and magenta alignment guides with equal spacing and sizes |

@@ -348,7 +348,7 @@ const Pick = {
 (function(){
   const U = fabric.controlsUtils;
   const square = (ctx, left, top, styleOverride, o) => {
-    const z = 8; ctx.save(); ctx.translate(left, top); ctx.rotate(fabric.util.degreesToRadians(o.angle || 0));
+    const z = COARSE ? 13 : 8; ctx.save(); ctx.translate(left, top); ctx.rotate(fabric.util.degreesToRadians(o.angle || 0));
     ctx.fillStyle = '#111'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.fillRect(-z / 2, -z / 2, z, z); ctx.strokeRect(-z / 2 + .5, -z / 2 + .5, z - 1, z - 1); ctx.restore();
   };
   const arrowHead = (ctx, x, y, ang) => { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-6, -3.5); ctx.lineTo(-6, 3.5); ctx.closePath(); ctx.fill(); ctx.restore(); };
@@ -389,7 +389,7 @@ const Pick = {
               positionHandler: (dim, m, o) => fabric.util.transformPoint({x: (o.pivotU || 0) * dim.x, y: (o.pivotV || 0) * dim.y}, m)}),
   };
   fabric.Object.prototype.controls = Pick.SCALE;
-  fabric.Object.prototype.set({hasBorders: false, padding: 7, cornerSize: 12, transparentCorners: false});
+  fabric.Object.prototype.set({hasBorders: false, padding: COARSE ? 10 : 7, cornerSize: 12, touchCornerSize: 34, transparentCorners: false});
   Object.assign(canvas, {centeredKey: 'shiftKey', uniScaleKey: null, altActionKey: null, selectionFullyContained: true});
 })();
 
@@ -417,7 +417,7 @@ canvas.on('mouse:up:before', o => { if (tool === 'pick') canvas.selectionFullyCo
 canvas.on('mouse:up', o => {
   const was = pickDown; pickDown = null;
   Pick.clearGuides(); Pick.targets = null;
-  if (tool !== 'pick' || !was || was.dug || o.button === 3) return;
+  if (tool !== 'pick' || !was || was.dug || o.button === 3 || (typeof Touch !== 'undefined' && Touch.suppressClick)) return;
   const a = canvas.getActiveObject(), tr = o.transform;
   // a click (no drag) on the selection, or on its centre mark, toggles the rotate/skew handles
   if (o.isClick && a && was.prev === a && (!tr || !tr.corner || tr.corner === 'c') && (o.target === a || (a.type === 'activeSelection' && a.contains(o.target)) || (tr && tr.corner === 'c'))){

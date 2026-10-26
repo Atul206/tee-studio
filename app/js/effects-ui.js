@@ -35,7 +35,7 @@ const FxTool = {
   },
   envNodes(o){ const e = o.fx && o.fx.envelope; return e ? e.nodes.map(n => this.toScene(o, n)) : []; },
   distortCentre(o){ const d = o.fx && o.fx.distort; if (!d) return null; const fx = Effects.compute(o), box = (fx && fx.box0) || Effects.drawnBounds(o); return this.toScene(o, {x: d.cx != null ? d.cx : box.cx, y: d.cy != null ? d.cy : box.cy}); },
-  near(p, q, r = 7){ return q && Math.hypot(p.x - q.x, p.y - q.y) * zoom <= r; },
+  near(p, q, r = COARSE ? 16 : 7){ return q && Math.hypot(p.x - q.x, p.y - q.y) * zoom <= r; },
 
   /* ---------- pointer ---------- */
   down(o){

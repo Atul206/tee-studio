@@ -7,7 +7,7 @@
   html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:12px/1.4 Inter,system-ui,sans-serif;overflow:hidden}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   select{font:inherit}
-  .app{display:grid;height:100vh;grid-template-rows:28px 38px 40px 1fr 30px 24px;grid-template-columns:44px 1fr 300px;
+  .app{display:grid;height:100vh;height:100dvh;grid-template-rows:28px 38px 40px 1fr 30px 24px;grid-template-columns:44px 1fr 300px;
        grid-template-areas:"menu menu menu" "std std std" "prop prop prop" "tools work dock" "pal pal pal" "status status status"}
 
   /* menu */
@@ -181,11 +181,7 @@
 
   .toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%) translateY(20px);background:#0f1012;border:1px solid var(--line-2);color:var(--text);padding:8px 14px;border-radius:8px;opacity:0;transition:.2s;z-index:60;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
   .toast.on{opacity:1;transform:translateX(-50%)}
-  .narrow{display:none}
-  @media (max-width:1000px){
-    .narrow{display:block;position:fixed;inset:0;z-index:100;background:rgba(15,16,18,.96);padding:40px 24px;text-align:center;font-size:14px}
-    .narrow b{display:block;font-size:18px;margin-bottom:8px}
-  }
+
 
   /* menu-bar document status */
   .menu .doc{display:flex;align-items:center;gap:8px;min-width:0}
@@ -249,3 +245,89 @@
   .focusbar.on + .clipbar{top:96px}
   .layer.faded{opacity:.45}
   .layer.infocus .nm{color:#93c5fd}
+
+  /* ===================== tablets and phones ===================== */
+  .hamburger,.panels-btn,.dclose,.dgrip,.scrim{display:none}
+  html,body{overscroll-behavior:none}
+  .stage,#cwrap{touch-action:none}
+  .tools{overflow-y:auto;scrollbar-width:none}
+  .tools::-webkit-scrollbar{display:none}
+
+  /* tablet: the panels slide in from the right */
+  @media (max-width:1099px){
+    .app{grid-template-columns:48px 1fr;grid-template-areas:"menu menu" "std std" "prop prop" "tools work" "pal pal" "status status"}
+    .dock{position:fixed;top:0;right:0;bottom:0;width:min(340px,92vw);z-index:45;transform:translateX(105%);transition:transform .2s ease;box-shadow:-20px 0 40px rgba(0,0,0,.45)}
+    .dock.open{transform:none}
+    .panels-btn{display:grid}
+    .dclose{display:block;flex:0 0 auto !important;padding:9px 12px !important;color:var(--muted)}
+    .scrim.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:44}
+    .std,.prop,.pal{overflow-x:auto;scrollbar-width:none}
+    .std::-webkit-scrollbar,.prop::-webkit-scrollbar,.pal::-webkit-scrollbar{display:none}
+    .std > *,.prop > *,.pgrp > *{flex:0 0 auto}
+    .menu .doc .savestate{max-width:220px}
+  }
+
+  /* phone: tools along the bottom, panels as a bottom sheet, menus behind ☰ */
+  @media (max-width:767px){
+    .app{grid-template-rows:44px 44px 44px 1fr 36px 60px;grid-template-columns:1fr;grid-template-areas:"menu" "std" "prop" "work" "pal" "tools"}
+    .status{display:none}
+    .hamburger{display:grid;font-size:18px}
+    .menu{gap:4px;padding:0 6px}
+    .menu .logo{margin-right:2px}
+    .menu .logotext{display:none}
+    .menu > .mi,.menu .spacer{display:none}
+    .menu .doc{flex:1;min-width:0;justify-content:flex-end}
+    .menu .doc b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+    .menu .doc .savestate{max-width:34vw;font-size:10px}
+    .menu.open{position:fixed;inset:0;z-index:70;flex-direction:column;align-items:stretch;overflow-y:auto;padding:8px 10px 24px;gap:0;background:#18191c}
+    .menu.open .hamburger{align-self:flex-start;margin-bottom:6px}
+    .menu.open .logo,.menu.open .doc{display:none}
+    .menu.open > .mi{display:block;border-bottom:1px solid var(--line);padding:6px 0}
+    .menu.open > .mi > button{font-weight:600;color:#fff;padding:6px 4px;width:100%;text-align:left;font-size:14px}
+    .menu.open .dd{display:block;position:static;box-shadow:none;border:0;background:none;padding:0 0 4px 8px;min-width:0}
+    .menu.open .dd button{padding:10px 8px;font-size:14px}
+    .work{grid-template-columns:1fr;grid-template-rows:1fr}
+    .corner,#rulerH,#rulerV{display:none}
+    .stage{grid-column:1;grid-row:1}
+    .tools{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:0 6px;border-right:0;border-top:1px solid var(--line);align-items:center}
+    .tools hr{width:1px;height:28px;border:0;border-left:1px solid var(--line);margin:0 4px;flex:0 0 auto}
+    .tool{flex:0 0 auto;width:46px;height:46px}
+    .tool .tip{display:none !important}
+    .swatchpair{margin:0 6px;flex:0 0 auto}
+    .dock{top:auto;left:0;right:0;width:auto;height:min(72dvh,600px);border-left:0;border-top:1px solid var(--line-2);border-radius:16px 16px 0 0;transform:translateY(105%);box-shadow:0 -20px 40px rgba(0,0,0,.45)}
+    .dock.open{transform:none}
+    .dgrip{display:block;width:44px;height:5px;border-radius:3px;background:var(--line-2);margin:8px auto 2px}
+    .pal .lbl{display:none}
+    .pagetabs{top:8px;left:8px}
+    .viewtabs{left:8px !important;right:8px;bottom:8px;overflow-x:auto;scrollbar-width:none}
+    .viewtabs button{flex:0 0 auto}
+    .focusbar{top:44px;left:8px;right:8px;overflow-x:auto}
+    .clipbar,.focusbar.on + .clipbar{top:84px;left:8px;right:8px;overflow-x:auto}
+    .clipbar > *{flex:0 0 auto}
+    .penhint{top:auto;bottom:56px;left:8px;right:8px;transform:none;text-align:center}
+    .dlg{grid-template-columns:1fr;max-height:94dvh;overflow:auto;width:96vw}
+    .dlg .opts{border-left:0;border-top:1px solid var(--line)}
+    .dlg .pv img{max-height:28dvh}
+    .homebox{max-height:96dvh;overflow:auto;width:96vw}
+    .homecols{grid-template-columns:1fr;padding:12px}
+    .homehead .hint{display:none}
+    .pgrid{max-height:none;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+    .ctxmenu{max-width:calc(100vw - 16px);max-height:70dvh;overflow:auto}
+    .toast{bottom:118px;max-width:calc(100vw - 24px);text-align:center}
+    .std .btn{padding:0 9px}
+  }
+
+  /* fingers: bigger targets */
+  @media (pointer:coarse){
+    .ib{min-width:38px;height:38px}
+    .tog{width:36px;height:34px}
+    .btn{height:36px}
+    .btn.mini{height:32px}
+    .fld input,.sel{height:32px}
+    .tool{width:46px;height:46px}
+    .pal span,.pal .none{width:30px;height:30px}
+    .layer{padding:9px 6px}
+    .dd button,.ctxmenu button{padding:11px 12px}
+    .dtabs button{padding:12px 0}
+  }
+  .pal .lbl{flex:0 0 auto}

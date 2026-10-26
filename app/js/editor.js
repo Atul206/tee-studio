@@ -1,4 +1,6 @@
 /* ===================== constants & state ===================== */
+// fingers need bigger handles and pick distances than a mouse
+const COARSE = matchMedia('(pointer: coarse)').matches;
 const PX_PER_IN = 20;               // scene units: 20 px = 1 inch
 const PA_IN = {w:12, h:16};
 const PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;
@@ -67,6 +69,16 @@ function layout(){
 }
 function fitZoom(){
   const s = $('stage');
+  if (matchMedia('(max-width: 767px)').matches){
+    // phones: the print area fills the screen (the shirt runs off the sides), centred
+    zoom = Math.max(0.3, Math.min((s.clientWidth - 24) / PA_W, (s.clientHeight - 96) / PA_H));
+    layout();
+    const pa = $('pa');
+    s.scrollLeft = pa.offsetLeft + $('wrap').offsetLeft + pa.offsetWidth / 2 - s.clientWidth / 2;
+    s.scrollTop = pa.offsetTop + $('wrap').offsetTop + pa.offsetHeight / 2 - s.clientHeight / 2 + 10;
+    drawRulers(); canvas.calcOffset();
+    return;
+  }
   zoom = Math.max(0.3, Math.min((s.clientWidth - 40) / (PA_W / 0.36), (s.clientHeight - 30) / (PA_W / 0.36 * 1.05)));
   layout();
 }

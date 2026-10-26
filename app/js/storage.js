@@ -238,7 +238,7 @@ const Home = {
     let items = [];
     try { items = await Store.list(); } catch(e){ grid.innerHTML = `<div class="empty">Could not read the folder: ${e.message}</div>`; return; }
     $('homeCount').textContent = items.length ? `${items.length} design${items.length > 1 ? 's' : ''} · ${Store.canWrite() ? 'in ' + Store.dirName() : 'in this browser'}` : '';
-    grid.innerHTML = items.length ? '' : `<div class="empty">No saved designs yet. Start a new one on the left.</div>`;
+    grid.innerHTML = items.length ? '' : `<div class="empty">No saved designs yet — start a new one.</div>`;
     items.forEach(it => {
       const c = document.createElement('div'); c.className = 'pcard' + (it.file === Store.fileName && Store.open ? ' cur' : '');
       c.innerHTML = `<div class="pthumb"></div><div class="pmeta"><b></b><small></small></div><button class="pdel" title="Delete design">🗑</button>`;

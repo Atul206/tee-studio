@@ -28,6 +28,18 @@ EXPORT  (Export button, top right)
   JPG     flat on white, for sharing
   Mockup  the design on the chosen shirt colour, 2000 × 2100 px
 
+PHONES & TABLETS
+  The layout adapts: on tablets the panels slide in from the right (▤ button),
+  on phones the tools sit along the bottom, the panels open as a sheet from
+  the bottom and the menus are behind ☰.
+  Pinch with two fingers    zoom (the point between your fingers stays put)
+  Drag with two fingers     move around the page
+  Long-press                right-click menu (objects, nodes in the Shape tool)
+  Double-tap                double-click (Focus mode on a group, Shape tool...)
+  Palette                   tap = fill · press and hold = outline
+  Phones and tablets save designs inside the browser (Android/iOS browsers
+  can't write to folders) and exports download.
+
 PICK TOOL  (V — works like CorelDRAW / TraceDraw)
   Click again on a selected object   rotate/slant handles: corner arrows turn,
                      side arrows slant, the ring is the centre of rotation (drag
