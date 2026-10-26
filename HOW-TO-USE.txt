@@ -30,8 +30,8 @@ EXPORT  (Export button, top right)
 
 PHONES & TABLETS
   The layout adapts: on tablets the panels slide in from the right (▤ button),
-  on phones the tools sit along the bottom, the panels open as a sheet from
-  the bottom and the menus are behind ☰.
+  on phones the tools sit along the bottom (⋯ shows the less common ones), the
+  panels open as a sheet from the bottom and the menus are behind ☰.
   Pinch with two fingers    zoom (the point between your fingers stays put)
   Drag with two fingers     move around the page
   Long-press                right-click menu (objects, nodes in the Shape tool)
@@ -131,6 +131,11 @@ SNAPPING & ALIGNMENT GUIDES  (magnet and guide buttons in the top bar)
   Equal spacing: a shape snaps halfway between its neighbours, or to the gap
   they already keep. Equal sizes: resizing snaps to another object's width or
   height. Alt+Q snapping on/off · Alt+Shift+A guides on/off.
+
+MOVING AROUND THE PAGE
+  Mouse wheel / trackpad scroll   pan        Ctrl/⌘ + wheel or trackpad pinch  zoom
+  Space + drag, or middle button  pan        two fingers on a touch screen     pinch / pan
+  View › Fit to window (or ⤢) brings the whole shirt back.
 
 USEFUL KEYS
   V pick · R rectangle · E ellipse · S star · L line · P pen · F freehand

@@ -328,6 +328,10 @@ const Effects = {
   },
   drawShadow(o, ctx, plain){
     const s = o.fx.shadow, Dm = ctx.getTransform(), DM = [Dm.a, Dm.b, Dm.c, Dm.d, Dm.e, Dm.f];
+    // the blurred shadow is kept as a bitmap and only moved while nothing but the position changes
+    const key = [this.sig(o), JSON.stringify(o.fx), DM.slice(0, 4).map(v => v.toFixed(4)).join(), ctx.canvas === canvas.lowerCanvasEl].join('|');
+    const hit = o.__shadowCache;
+    if (hit && hit.key === key){ this.blitShadow(ctx, s, hit.c, Dm.e + hit.dx, Dm.f + hit.dy); return; }
     const scale = Math.sqrt(Math.abs(Dm.a * Dm.d - Dm.b * Dm.c)) || 1;
     const b = this.drawnBounds(o), pad = (o.strokeWidth || 0) + 2 / scale;
     const corners = [[b.x0 - pad, b.y0 - pad], [b.x1 + pad, b.y0 - pad], [b.x1 + pad, b.y1 + pad], [b.x0 - pad, b.y1 + pad]];
@@ -363,6 +367,7 @@ const Effects = {
     const cw = ctx.canvas.width, ch = ctx.canvas.height;
     const cx0 = Math.max(ox0, -margin), cy0 = Math.max(oy0, -margin), cx1 = Math.min(ox0 + ow, cw + margin), cy1 = Math.min(oy0 + oh, ch + margin);
     if (cx1 <= cx0 || cy1 <= cy0) return;
+    const clamped = cx0 !== ox0 || cy0 !== oy0 || cx1 !== ox0 + ow || cy1 !== oy0 + oh;
     ox0 = cx0; oy0 = cy0; ow = cx1 - cx0; oh = cy1 - cy0;
     const outC = document.createElement('canvas'); outC.width = ow; outC.height = oh;
     const oc = outC.getContext('2d');
@@ -387,11 +392,16 @@ const Effects = {
       g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, `rgba(0,0,0,${1 - s.fade / 100})`);
       oc.globalCompositeOperation = 'destination-in'; oc.fillStyle = g; oc.fillRect(0, 0, ow, oh);
     }
-    // 5. merged with what lies beneath
+    // a shadow cut off by the canvas edge can't be reused once the object moves
+    o.__shadowCache = clamped ? null : {key, c: outC, dx: ox0 - Dm.e, dy: oy0 - Dm.f};
+    this.blitShadow(ctx, s, outC, ox0, oy0);
+  },
+  // 5. merged with what lies beneath
+  blitShadow(ctx, s, c, x, y){
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = ctx.globalAlpha * (s.opacity != null ? s.opacity / 100 : 0.5);
     ctx.globalCompositeOperation = s.merge || 'multiply';
-    ctx.drawImage(outC, ox0, oy0);
+    ctx.drawImage(c, x, y);
     ctx.restore();
   },
   // perspective: the edge it stands on, in the object's own space

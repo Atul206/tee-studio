@@ -5,7 +5,7 @@
 
 const Touch = {
   suppressClick: false,
-  openDock(on){ document.querySelector('.dock').classList.toggle('open', on); $('scrim').classList.toggle('on', on); },
+  openDock(on){ document.querySelector('.dock').classList.toggle('open', on); $('scrim').classList.toggle('on', on); if (on) refreshLayersSoon(); },
   small: () => matchMedia('(max-width: 1099px)').matches,
 };
 
@@ -40,21 +40,20 @@ window.addEventListener('resize', () => { if (!Touch.small()){ Touch.openDock(fa
     const tr = canvas._currentTransform;
     if (tr){ Pick.restore(tr.target, tr.original); canvas._currentTransform = null; }
     canvas._groupSelector = null; canvas.clearContext(canvas.contextTop);
-    const m = mid(e.touches);
-    pinch = {d: dist(e.touches), z: zoom, p: toScene(m), last: m};
+    const m = mid(e.touches), r = canvas.upperCanvasEl.getBoundingClientRect();
+    pinch = {d: dist(e.touches), z: zoom, p: toScene(m), r};
     clearTimeout(lp && lp.t); lp = null;
   }, {capture: true, passive: false});
   stage.addEventListener('touchmove', e => {
     if (!pinch) return;
     e.preventDefault(); e.stopPropagation();
     if (e.touches.length < 2) return;
+    // zoom by the spread and keep the scene point under the fingers (which also pans)
     const m = mid(e.touches);
-    setZoom(pinch.z * dist(e.touches) / pinch.d);
-    // keep the point between the fingers under them
-    const r = canvas.upperCanvasEl.getBoundingClientRect(), v = canvas.viewportTransform;
-    stage.scrollLeft += r.left + v[4] + pinch.p.x * v[0] - m.x;
-    stage.scrollTop += r.top + v[5] + pinch.p.y * v[3] - m.y;
-    drawRulers(); canvas.calcOffset();
+    autoFit = false;
+    zoom = Math.max(0.3, Math.min(6, pinch.z * dist(e.touches) / pinch.d));
+    paL = m.x - pinch.r.left - pinch.p.x * zoom; paT = m.y - pinch.r.top - pinch.p.y * zoom;
+    if (!pinch.raf) pinch.raf = requestAnimationFrame(() => { if (pinch) pinch.raf = 0; layout(); canvas.requestRenderAll(); });
   }, {capture: true, passive: false});
   ['touchend', 'touchcancel'].forEach(t => stage.addEventListener(t, e => {
     if (!pinch) return;
@@ -110,3 +109,6 @@ let lp = null;
   pal.addEventListener('click', e => { if (held){ e.stopImmediatePropagation(); e.preventDefault(); held = false; } }, true);
   if (matchMedia('(pointer: coarse)').matches){ const l = pal.querySelector('.lbl'); if (l) l.textContent = 'Tap = fill · hold = outline'; }
 })();
+
+/* ---------- phone toolbar: ⋯ shows the less common tools ---------- */
+$('bMoreTools').onclick = e => { e.stopPropagation(); $('tools').classList.toggle('all'); };

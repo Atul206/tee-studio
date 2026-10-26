@@ -79,9 +79,10 @@
   canvas.ruler{display:block;width:100%;height:100%;background:#2a2b2f}
   #rulerH{grid-column:2;grid-row:1}
   #rulerV{grid-column:1;grid-row:2}
-  .stage{grid-column:2;grid-row:2;position:relative;overflow:auto;display:flex;min-width:0;min-height:0}
-  .shirt-wrap{position:relative;margin:auto;flex:0 0 auto}
-  .shirt-wrap svg.shirt{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 18px 30px rgba(0,0,0,.35))}
+  /* the canvas is exactly the size of the stage; the shirt and print area follow the view by transform */
+  .stage{grid-column:2;grid-row:2;position:relative;overflow:hidden;min-width:0;min-height:0}
+  .shirt-wrap{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
+  .shirt-wrap svg.shirt{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
   #cwrap{position:absolute;inset:0}
   .print-area{position:absolute;outline:1px dashed rgba(96,165,250,.9);pointer-events:none;
               background:repeating-conic-gradient(rgba(255,255,255,.035) 0 25%,transparent 0 50%) 0 0/16px 16px}
@@ -331,3 +332,12 @@
     .dtabs button{padding:12px 0}
   }
   .pal .lbl{flex:0 0 auto}
+
+  /* phones: everyday tools first, the rest behind ⋯ ; no costly blur behind dialogs on touch devices */
+  .tool.more{display:none}
+  @media (max-width:767px){
+    .tools:not(.all) .tool.adv{display:none}
+    .tool.more{display:grid}
+    .tools.all .tool.more{background:var(--accent-soft)}
+  }
+  @media (pointer:coarse){ .modal.home{backdrop-filter:none} }

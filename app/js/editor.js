@@ -29,6 +29,7 @@ let clipboard = null;
   };
 })();
 fabric.Object.prototype.set({transparentCorners:false, cornerColor:'#ffffff', cornerStrokeColor:'#3b82f6', borderColor:'#3b82f6', cornerSize:8, padding:2});
+fabric.devicePixelRatio = Math.min(window.devicePixelRatio || 1, COARSE ? 2 : 2.5);
 const canvas = new fabric.Canvas('c', {preserveObjectStacking:true, selectionColor:'rgba(59,130,246,.12)', selectionBorderColor:'#3b82f6', selectionLineWidth:1, stopContextMenu:true, fireRightClick:true});
 
 /* ===================== helpers ===================== */
@@ -56,33 +57,51 @@ function actives(){ return canvas.getActiveObjects(); }
 function leafs(objs){ return objs.flatMap(o => o.type === 'group' ? leafs(o.getObjects()) : o.type === 'clipframe' ? [o._objects[0]] : [o]); }
 
 /* ===================== layout, zoom & rulers ===================== */
+// The canvas is always the size of the stage (a canvas the size of the zoomed shirt ran to 30+ megapixels on
+// phones). The view is (zoom, paL, paT): the print area's top-left in canvas pixels. The shirt picture and the
+// print-area frame are moved to match by CSS transform, which the browser composites cheaply.
+const SHIRT_W = PA_W / 0.36, SHIRT_H = SHIRT_W * 1.05;
 function layout(){
-  const W = Math.round(PA_W * zoom / 0.36), H = Math.round(W * 1.05);
-  const wrap = $('wrap'); wrap.style.width = W + 'px'; wrap.style.height = H + 'px';
-  paL = Math.round((W - PA_W * zoom) / 2); paT = Math.round(0.22 * H);
+  const s = $('stage'), sw = s.clientWidth, sh = s.clientHeight;
+  if (canvas.getWidth() !== sw || canvas.getHeight() !== sh){ canvas.setDimensions({width: sw, height: sh}); canvas.calcOffset(); }
+  const wrap = $('wrap');
+  if (!wrap.style.width){ wrap.style.width = SHIRT_W + 'px'; wrap.style.height = SHIRT_H + 'px'; }
+  const wx = paL - (SHIRT_W - PA_W) / 2 * zoom, wy = paT - 0.22 * SHIRT_H * zoom;
+  wrap.style.transform = `translate(${wx}px,${wy}px) scale(${zoom})`;
   Object.assign($('pa').style, {left: paL + 'px', top: paT + 'px', width: PA_W * zoom + 'px', height: PA_H * zoom + 'px'});
-  canvas.setDimensions({width: W, height: H});
   canvas.setViewportTransform([zoom, 0, 0, zoom, paL, paT]);
-  canvas.calcOffset();
   $('zoomlbl').textContent = Math.round(zoom * 100) + '%';
   drawRulers();
 }
-function fitZoom(){
-  const s = $('stage');
-  if (matchMedia('(max-width: 767px)').matches){
-    // phones: the print area fills the screen (the shirt runs off the sides), centred
-    zoom = Math.max(0.3, Math.min((s.clientWidth - 24) / PA_W, (s.clientHeight - 96) / PA_H));
-    layout();
-    const pa = $('pa');
-    s.scrollLeft = pa.offsetLeft + $('wrap').offsetLeft + pa.offsetWidth / 2 - s.clientWidth / 2;
-    s.scrollTop = pa.offsetTop + $('wrap').offsetTop + pa.offsetHeight / 2 - s.clientHeight / 2 + 10;
-    drawRulers(); canvas.calcOffset();
-    return;
-  }
-  zoom = Math.max(0.3, Math.min((s.clientWidth - 40) / (PA_W / 0.36), (s.clientHeight - 30) / (PA_W / 0.36 * 1.05)));
+// moves the view; keeps some of the print area on screen
+function panBy(dx, dy){
+  const s = $('stage'), m = 40;
+  paL = Math.min(s.clientWidth - m, Math.max(m - PA_W * zoom, paL + dx));
+  paT = Math.min(s.clientHeight - m, Math.max(m - PA_H * zoom, paT + dy));
   layout();
 }
-function setZoom(z){ autoFit = false; zoom = Math.max(0.3, Math.min(4, z)); layout(); }
+function fitZoom(){
+  const s = $('stage'), sw = s.clientWidth, sh = s.clientHeight;
+  if (matchMedia('(max-width: 767px)').matches){
+    // phones: the print area fills the screen (the shirt runs off the sides), centred
+    zoom = Math.max(0.3, Math.min((sw - 24) / PA_W, (sh - 96) / PA_H));
+    paL = (sw - PA_W * zoom) / 2; paT = (sh - PA_H * zoom) / 2 + 10;
+  } else {
+    zoom = Math.max(0.3, Math.min((sw - 40) / SHIRT_W, (sh - 30) / SHIRT_H));
+    const wx = (sw - SHIRT_W * zoom) / 2, wy = (sh - SHIRT_H * zoom) / 2;
+    paL = wx + (SHIRT_W - PA_W) / 2 * zoom; paT = wy + 0.22 * SHIRT_H * zoom;
+  }
+  layout();
+}
+// zoom about a point of the canvas (the stage centre by default): the scene point there stays put
+function setZoom(z, ax, ay){
+  autoFit = false;
+  const s = $('stage'); if (ax == null){ ax = s.clientWidth / 2; ay = s.clientHeight / 2; }
+  const qx = (ax - paL) / zoom, qy = (ay - paT) / zoom;
+  zoom = Math.max(0.3, Math.min(6, z));
+  paL = ax - qx * zoom; paT = ay - qy * zoom;
+  layout();
+}
 let autoFit = true;
 function drawRulers(){
   const dpr = window.devicePixelRatio || 1, paRect = $('pa').getBoundingClientRect();
@@ -114,8 +133,26 @@ $('stage').addEventListener('scroll', () => { drawRulers(); canvas.calcOffset();
 // Fabric caches where the canvas sits on the page; refresh it before each press so pointers stay exact
 // even after the layout shifted (panels, scrollbars, the start screen closing)
 canvas.upperCanvasEl.addEventListener('mousedown', () => canvas.calcOffset(), true);
-window.addEventListener('resize', () => { if (autoFit) fitZoom(); else { drawRulers(); canvas.calcOffset(); } });
-$('stage').addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey){ e.preventDefault(); setZoom(zoom * (e.deltaY < 0 ? 1.1 : 0.9)); } }, {passive:false});
+window.addEventListener('resize', () => { if (autoFit) fitZoom(); else layout(); canvas.calcOffset(); });
+// wheel / trackpad: scroll pans, Ctrl/⌘ (or a trackpad pinch) zooms about the pointer
+$('stage').addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = canvas.upperCanvasEl.getBoundingClientRect();
+  if (e.ctrlKey || e.metaKey) setZoom(zoom * Math.exp(-e.deltaY * 0.0025), e.clientX - r.left, e.clientY - r.top);
+  else { autoFit = false; panBy(-(e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX), -(e.shiftKey && !e.deltaX ? 0 : e.deltaY)); }
+}, {passive:false});
+// Space + drag (or the middle button) pans on desktop
+(function(){
+  let space = false, drag = null;
+  document.addEventListener('keydown', e => { if (e.code === 'Space' && !isTyping(e) && !canvas._currentTransform){ space = true; canvas.defaultCursor = canvas.hoverCursor = 'grab'; e.preventDefault(); } });
+  document.addEventListener('keyup', e => { if (e.code === 'Space'){ space = false; canvas.defaultCursor = tool === 'pick' ? 'default' : 'crosshair'; canvas.hoverCursor = 'move'; } });
+  $('stage').addEventListener('mousedown', e => {
+    if (!(space || e.button === 1)) return;
+    e.preventDefault(); e.stopPropagation(); drag = {x: e.clientX, y: e.clientY};
+  }, true);
+  document.addEventListener('mousemove', e => { if (!drag) return; autoFit = false; panBy(e.clientX - drag.x, e.clientY - drag.y); drag = {x: e.clientX, y: e.clientY}; });
+  document.addEventListener('mouseup', () => { drag = null; });
+})();
 
 /* ===================== shirt colour & pages ===================== */
 Object.entries(SHIRTS).forEach(([n, c]) => {
@@ -299,7 +336,7 @@ canvas.on('mouse:down', o => {
   if (tool === 'shape') return Nodes.down(o);
   if (FxTool.active()) return FxTool.down(o);
   const p = pointer(o);
-  if (tool === 'zoom'){ setZoom(zoom * (o.e.altKey ? 0.8 : 1.25)); return; }
+  if (tool === 'zoom'){ const c = canvas.getPointer(o.e, true); setZoom(zoom * (o.e.altKey ? 0.8 : 1.25), c.x, c.y); return; }
   if (tool === 'eyedrop'){
     if (!o.target) return;
     const src = o.target.type === 'group' ? o.target.getObjects()[0] : o.target;
@@ -402,7 +439,12 @@ canvas.on('text:changed', e => { TextCurves.refit(e.target); queueSnapshot(); sy
 ['object:scaling','object:rotating','object:resizing'].forEach(ev => canvas.on(ev, syncBars));
 
 let layersT;
-function refreshLayersSoon(){ clearTimeout(layersT); layersT = setTimeout(() => { renderLayers(); renderChecks(); }, 60); }
+// the layers list and print checks only rebuild while they can be seen (on phones the panels are usually closed)
+function panelVisible(d){
+  const dock = document.querySelector('.dock');
+  return $('d-' + d).classList.contains('on') && (!matchMedia('(max-width: 1099px)').matches || dock.classList.contains('open'));
+}
+function refreshLayersSoon(){ clearTimeout(layersT); layersT = setTimeout(() => { if (panelVisible('objects')) renderLayers(); if (panelVisible('props')) renderChecks(); }, 80); }
 function refresh(){ syncBars(); syncProps(); refreshLayersSoon(); }
 
 /* ===================== property bar ===================== */
@@ -567,7 +609,17 @@ $('palNone').oncontextmenu = e => { e.preventDefault(); paletteApply(null, true)
 
 /* ===================== layers docker ===================== */
 let dragIdx = null;
+// thumbnails are cached until what they show changes
+function thumbKey(o){
+  const f = o.fill && typeof o.fill === 'object' ? JSON.stringify(o.fill.colorStops || '') : o.fill;
+  return [o.type, o.width, o.height, o.scaleX, o.scaleY, o.angle, o.flipX, o.flipY, o.skewX, f, o.stroke, o.strokeWidth, o.text, o.opacity, o.fontFamily, o.fontWeight,
+          o.path && o.path.length, o._objects && o._objects.map(c => c.type + c.left + c.top + c.fill).join(), o.fx && JSON.stringify(o.fx).length].join('|');
+}
 function thumb(o){
+  const k = thumbKey(o); if (o.__thumb && o.__thumb.k === k) return o.__thumb.url;
+  const url = thumbRender(o); o.__thumb = {k, url}; return url;
+}
+function thumbRender(o){
   try {
     const w = o.getScaledWidth() || 1, h = o.getScaledHeight() || 1;
     return o.toDataURL({multiplier: 56 / Math.max(w, h) / zoom, format:'png'});
@@ -795,6 +847,7 @@ document.querySelectorAll('.menu .mi > button').forEach(btn => btn.addEventListe
 function showDock(d){
   document.querySelectorAll('.dtabs button').forEach(x => x.classList.toggle('on', x.dataset.d === d));
   document.querySelectorAll('.dbody').forEach(x => x.classList.toggle('on', x.id === 'd-' + d));
+  refreshLayersSoon();
 }
 document.querySelectorAll('.dtabs button').forEach(b => b.onclick = () => showDock(b.dataset.d));
 
