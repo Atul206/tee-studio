@@ -5,7 +5,7 @@ const PX_PER_IN = 20;               // scene units: 20 px = 1 inch
 const PA_IN = {w:12, h:16};
 const PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;
 const DEF_STROKE = 3 * PX_PER_IN / 72;   // 3 pt
-const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid'];
+const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj'];
 const FONTS = ['Bebas Neue','Anton','Oswald','Montserrat','Inter','Pacifico','Lobster','Permanent Marker','Bungee','Playfair Display','Rubik Mono One','Caveat'];
 const SHIRTS = {Black:'#1f2937', White:'#f3f4f6', Heather:'#9ca3af', Navy:'#1e3a8a', Red:'#b91c1c', Forest:'#14532d', Sand:'#d6c7a1'};
 const PALETTE = ['#000000','#ffffff','#1f2937','#4b5563','#9ca3af','#e5e7eb','#7f1d1d','#ef4444','#f97316','#f59e0b','#fde68a','#facc15','#84cc16','#22c55e','#14532d','#10b981','#06b6d4','#0ea5e9','#3b82f6','#1e3a8a','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78350f','#a16207','#c2b280','#d6c7a1','#c0c0c0','#d4af37','#b87333'];
@@ -28,6 +28,8 @@ let clipboard = null;
     return base.call(this, copy, t => fabric.Path.fromObject(path, p => { t.set('path', p); t.initDimensions(); t.setCoords(); callback && callback(t); }));
   };
 })();
+// Fabric rounds saved numbers to 2 decimals: a 300 dpi picture's scale (0.0667) would come back as 0.07, 5 % bigger
+fabric.Object.NUM_FRACTION_DIGITS = 8;
 fabric.Object.prototype.set({transparentCorners:false, cornerColor:'#ffffff', cornerStrokeColor:'#3b82f6', borderColor:'#3b82f6', cornerSize:8, padding:2});
 fabric.devicePixelRatio = Math.min(window.devicePixelRatio || 1, COARSE ? 2 : 2.5);
 const canvas = new fabric.Canvas('c', {preserveObjectStacking:true, selectionColor:'rgba(59,130,246,.12)', selectionBorderColor:'#3b82f6', selectionLineWidth:1, stopContextMenu:true, fireRightClick:true});
@@ -453,13 +455,17 @@ function syncBars(){
   const a = canvas.getActiveObject(), objs = actives();
   const isText = objs.length && objs.every(o => o.text != null);
   $('pbNone').classList.toggle('on', !a && tool !== 'shape' && !FxTool.active());
-  $('pbXform').classList.toggle('on', !!a);
+  const BM = typeof Bitmap !== 'undefined', cropping = BM && Bitmap.cropping, pic = BM && objs.length === 1 && Bitmap.isImg(a);
+  $('pbXform').classList.toggle('on', !!a && !cropping);
+  $('pbImage').classList.toggle('on', pic && !cropping);
+  $('pbCrop').classList.toggle('on', cropping);
+  if (pic) Bitmap.syncBar(a);
   $('pbText').classList.toggle('on', !!a && isText);
   $('pbShape').classList.toggle('on', objs.length > 1);
   const onPath = objs.length === 1 && isText && !!a.fitD;
   $('pbPath').classList.toggle('on', onPath);
   $('pbBreak').classList.toggle('on', objs.length === 1 && a.type === 'path' && (a.path || []).filter(c => c[0] === 'M').length > 1);
-  $('ctxLabel').textContent = a ? (objs.length > 1 ? `${objs.length} objects` : kindOf(a)) : TOOL_INFO[tool][0];
+  $('ctxLabel').textContent = cropping ? 'Crop' : a ? (objs.length > 1 ? `${objs.length} objects` : kindOf(a)) : TOOL_INFO[tool][0];
   $('toolHint').textContent = TOOL_INFO[tool][1];
   if (a){
     const set = (id, v) => { if (document.activeElement !== $(id)) $(id).value = v; };
@@ -756,10 +762,7 @@ function importFile(file){
   if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)){
     r.onload = () => fabric.loadSVGFromString(r.result, (objs, opts) => { if (!objs.length) return toast('That SVG had nothing to import'); place(fabric.util.groupSVGElements(objs, opts)); });
     r.readAsText(file);
-  } else {
-    r.onload = () => fabric.Image.fromURL(r.result, img => place(img));
-    r.readAsDataURL(file);
-  }
+  } else Bitmap.importImage(file, img => { img.name = file.name.replace(/\.[^.]+$/, ''); addAndSelect(placeCenter(img)); });
 }
 $('fileImport').onchange = e => { const f = e.target.files[0]; if (f) importFile(f); e.target.value = ''; };
 $('fileOpen').onchange = e => {
@@ -782,7 +785,8 @@ document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => setP
 
 function run(cmd){
   if (cmd.startsWith('soon:')) return soon(cmd.slice(5));
-  if (cmd.startsWith('tool:')) return setTool(cmd.slice(5));
+  if (cmd.startsWith('tool:')){ Bitmap.cancelCrop(); return setTool(cmd.slice(5)); }
+  if (cmd.startsWith('bmp:')) return Bitmap.run(cmd.slice(4));
   if (cmd.startsWith('shape:')) return Shaping.run(cmd.slice(6));
   const a = canvas.getActiveObject();
   switch (cmd){
@@ -794,7 +798,7 @@ function run(cmd){
     case 'folder': Store.connect(); break;
     case 'import': $('fileImport').click(); break;
     case 'export': openExport(); break;
-    case 'quickpng': exportPNG(300, true, page).then(url => Store.output(dataURLToBlob(url), `${page}-300dpi.png`)); break;
+    case 'quickpng': exportPNG(300, true, page).then(url => Bitmap.withDpi(dataURLToBlob(url), 300)).then(b => Store.output(b, `${page}-300dpi.png`)); break;
     case 'undo': undo(); break;
     case 'redo': redo(); break;
     case 'copy': if (a) a.clone(c => { clipboard = c; toast('Copied'); }, PROPS); break;

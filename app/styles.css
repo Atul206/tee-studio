@@ -180,6 +180,23 @@
   .dlg .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
   .fmtnote{color:var(--muted);font-size:11px;min-height:30px}
 
+  /* export size, resample and adjust */
+  .row .u{color:var(--muted);flex:0 0 auto}
+  .row select.u{flex:0 0 auto;width:58px}
+  .row .seg{flex:1;display:flex;min-width:0}
+  .row .seg button{flex:1;padding:4px 0;min-width:0}
+  .row .ck{margin:0;flex:1}
+  .row output{width:34px;text-align:right;color:var(--muted);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .dlg.one{grid-template-columns:minmax(0,1fr);width:min(420px,94vw)}
+  .dlg.one .opts{border-left:0}
+  .fmtnote.warn{color:var(--warn)}
+  .floatpanel{position:fixed;right:290px;top:110px;width:300px;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:45;display:none}
+  .floatpanel.on{display:block}
+  .floatpanel h3{margin:0 0 10px;font-size:14px}
+  .floatpanel .row label{width:72px}
+  .floatpanel .fmtnote{min-height:0;margin:4px 0 0}
+  .floatpanel .foot{display:flex;gap:8px;margin-top:12px}
+
   .toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%) translateY(20px);background:#0f1012;border:1px solid var(--line-2);color:var(--text);padding:8px 14px;border-radius:8px;opacity:0;transition:.2s;z-index:60;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
   .toast.on{opacity:1;transform:translateX(-50%)}
 
@@ -257,6 +274,7 @@
   /* tablet: the panels slide in from the right */
   @media (max-width:1099px){
     .app{grid-template-columns:48px 1fr;grid-template-areas:"menu menu" "std std" "prop prop" "tools work" "pal pal" "status status"}
+    .floatpanel{right:16px}
     .dock{position:fixed;top:0;right:0;bottom:0;width:min(340px,92vw);z-index:45;transform:translateX(105%);transition:transform .2s ease;box-shadow:-20px 0 40px rgba(0,0,0,.45)}
     .dock.open{transform:none}
     .panels-btn{display:grid}
@@ -306,9 +324,12 @@
     .clipbar,.focusbar.on + .clipbar{top:84px;left:8px;right:8px;overflow-x:auto}
     .clipbar > *{flex:0 0 auto}
     .penhint{top:auto;bottom:56px;left:8px;right:8px;transform:none;text-align:center}
-    .dlg{grid-template-columns:1fr;max-height:94dvh;overflow:auto;width:96vw}
+    .dlg{grid-template-columns:minmax(0,1fr);max-height:94dvh;overflow:auto;width:96vw}
+    .row .seg button{font-size:11px;overflow:hidden;text-overflow:ellipsis}
     .dlg .opts{border-left:0;border-top:1px solid var(--line)}
     .dlg .pv img{max-height:28dvh}
+    .dlg.one .opts{border-top:0}
+    .floatpanel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:60dvh;overflow:auto}
     .homebox{max-height:96dvh;overflow:auto;width:96vw}
     .homecols{grid-template-columns:1fr;padding:12px}
     .homehead .hint{display:none}

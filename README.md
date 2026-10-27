@@ -33,7 +33,8 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 | Text | Arc text, fit text to any path (top/bottom centre, offset, flip side), text to curves |
 | Live effects | Drop shadow (flat & perspective, feathering, merge modes), Contour, Envelope (arch, bulge, flag…), Distort (push/pull, zipper, twister), Blend, gradient Transparency |
 | Groups | Ctrl+click inside groups, Focus mode, clip frames / PowerClip (text frames too), opacity masks |
-| Export | PNG, JPG, layered PSD (with optional per-layer PNGs and a hidden shirt layer), PDF, SVG (fonts embedded, effects baked), mockup PNG |
+| Pictures | Import PNG, JPEG, WebP, GIF, BMP, AVIF at the size their resolution gives; Resample by pixels, percent or dpi (Smooth, Sharp, Hard pixels, Enlarge with detail); Adjust brightness, contrast, saturation, hue, gamma, sharpen, greyscale, invert (non-destructive); Crop and Reset crop; save a picture's pixels as PNG |
+| Export | PNG, JPG, layered PSD (with optional per-layer PNGs and a hidden shirt layer), PDF, SVG (fonts embedded, effects baked), mockup PNG — of the print area, the artwork or the selection, at any size (in, cm, mm or px) and resolution (1–2400 dpi); PNG and JPG files record their dpi |
 
 ## How it's built
 
@@ -42,7 +43,7 @@ Plain HTML, CSS and classic scripts — no build step, no modules, no `fetch`, s
 ```
 index.html        the app
 app/styles.css
-app/js/           editor, storage, export, shaping, text, nodes, pick tool, effects, clip frames, blend
+app/js/           editor, storage, export, bitmaps, shaping, text, nodes, pick tool, effects, clip frames, blend
 lib/              Fabric.js, ag-psd, jsPDF, paper.js, opentype.js, Clipper
 fonts/            embedded Google Fonts (display + outlines)
 my-designs/       your designs folder (contents are git-ignored)

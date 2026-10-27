@@ -77,6 +77,14 @@
       <hr><button data-cmd="focus">Bring into focus</button>
       <button data-cmd="focusout">Leave focus mode</button>
     </div></div>
+    <div class="mi"><button>Bitmaps</button><div class="dd">
+      <button data-cmd="import">Import picture… <kbd>⌘I</kbd></button>
+      <hr><button data-cmd="bmp:resample">Resample…</button>
+      <button data-cmd="bmp:adjust">Adjust (brightness, colour, sharpen)…</button>
+      <button data-cmd="bmp:crop">Crop picture</button>
+      <button data-cmd="bmp:uncrop">Reset crop</button>
+      <hr><button data-cmd="bmp:save">Save picture as PNG…</button>
+    </div></div>
     <div class="mi"><button>Effects</button><div class="dd">
       <button data-cmd="tool:fxshadow">Drop shadow tool</button>
       <button data-cmd="tool:fxcontour">Contour tool</button>
@@ -279,6 +287,20 @@
     <div class="pgrp" id="pbBreak">
       <span class="sep"></span>
       <button class="btn ghost mini" data-cmd="shape:breakapart">Break apart</button>
+    </div>
+    <div class="pgrp" id="pbImage">
+      <span class="sep"></span>
+      <span class="hint" id="bmInfo" title="Pixel size and the resolution it prints at, at this size"></span>
+      <button class="btn ghost mini" data-cmd="bmp:resample" title="Give the picture a new pixel size or resolution">Resample…</button>
+      <button class="btn ghost mini" data-cmd="bmp:adjust" title="Brightness, contrast, colour, sharpen">Adjust…</button>
+      <button class="btn ghost mini" data-cmd="bmp:crop" title="Drag an area to keep">Crop</button>
+      <button class="btn ghost mini" data-cmd="bmp:uncrop" id="bmUncrop" title="Show the whole picture again">Reset crop</button>
+      <button class="btn ghost mini" data-cmd="bmp:save" title="Save the picture's own pixels as a PNG">Save picture…</button>
+    </div>
+    <div class="pgrp" id="pbCrop">
+      <span class="hint">Drag the area or its handles · <b>Enter</b> crops · <b>Esc</b> cancels</span>
+      <button class="btn primary mini" data-cmd="bmp:cropok">Crop</button>
+      <button class="btn ghost mini" data-cmd="bmp:cropcancel">Cancel</button>
     </div>
   </div>
 
@@ -501,8 +523,12 @@
         <button data-f="png" class="on">PNG</button><button data-f="jpg">JPG</button><button data-f="svg">SVG</button>
         <button data-f="psd">PSD</button><button data-f="pdf">PDF</button><button data-f="mockup">Mockup</button>
       </div>
-      <div class="row"><label>DPI</label><select id="exDpi"><option>72</option><option>150</option><option selected>300</option></select></div>
+      <div class="row exsz"><label>Area</label><div class="seg" id="exArea"><button data-a="print" class="on" title="The whole 12 × 16 in print area">Print area</button><button data-a="artwork" title="Just the part of the print area with artwork on it">Artwork</button><button data-a="selection" title="Only the selected objects">Selection</button></div></div>
+      <div class="row exsz"><label>Size</label><input type="number" id="exW" min="0" step="any" title="Width"><span class="u">×</span><input type="number" id="exH" min="0" step="any" title="Height"><select id="exUnit" class="u"><option value="in">in</option><option value="cm">cm</option><option value="mm">mm</option><option value="px">px</option></select></div>
+      <div class="row exsz"><label>Resolution</label><input type="number" id="exDpi" min="1" max="2400" step="any" value="300" list="dpiList"><span class="u">dpi</span><button class="btn ghost mini" id="exActual" title="Back to the artwork's real size on the shirt">Actual size</button>
+        <datalist id="dpiList"><option value="72"><option value="96"><option value="150"><option value="300"><option value="600"></datalist></div>
       <div class="row"><label>Pixels</label><input type="text" id="exPx" readonly></div>
+      <div class="fmtnote" id="exSizeNote"></div>
       <label class="ck"><input type="checkbox" id="exTransp" checked> Transparent background</label>
       <label class="ck"><input type="checkbox" id="exLayers"> Also save every layer as its own PNG</label>
       <label class="ck"><input type="checkbox" id="exShirt" checked> Add hidden shirt-colour layer (for previewing in Photoshop)</label>
@@ -516,6 +542,40 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- RESAMPLE -->
+<div class="modal" id="resample">
+  <div class="dlg one">
+    <div class="opts">
+      <h3>Resample picture</h3>
+      <p class="sub">A new pixel size for the picture. Its place and size on the shirt stay the same.</p>
+      <div class="row"><label>Width</label><input type="number" id="rsW" min="1" max="20000"><span class="u">px</span><input type="number" id="rsWp" min="0" step="any"><span class="u">%</span></div>
+      <div class="row"><label>Height</label><input type="number" id="rsH" min="1" max="20000"><span class="u">px</span><input type="number" id="rsHp" min="0" step="any"><span class="u">%</span></div>
+      <div class="row"><label>Resolution</label><input type="number" id="rsDx" min="1" step="any" title="Horizontal"><span class="u">×</span><input type="number" id="rsDy" min="1" step="any" title="Vertical"><span class="u">dpi</span></div>
+      <div class="row"><label></label><label class="ck"><input type="checkbox" id="rsKeep" checked> Maintain aspect ratio</label><button class="btn ghost mini" id="rs300" title="The pixel size that prints at 300 dpi at this size">300 dpi</button></div>
+      <div class="row"><label>Method</label><select id="rsMethod">
+        <option value="smooth">Smooth (photos)</option><option value="sharp">Sharp</option>
+        <option value="hard">Hard pixels (pixel art)</option><option value="detail">Enlarge with detail</option></select></div>
+      <div class="fmtnote" id="rsInfo"></div>
+      <div class="foot"><button class="btn ghost" id="rsCancel">Cancel</button><button class="btn primary" id="rsGo">Resample</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADJUST (floats beside the canvas so the picture stays in view) -->
+<div class="floatpanel" id="adjust">
+  <h3>Adjust picture</h3>
+  <div class="row"><label>Brightness</label><input type="range" id="adjB" min="-100" max="100" step="1"><output></output></div>
+  <div class="row"><label>Contrast</label><input type="range" id="adjC" min="-100" max="100" step="1"><output></output></div>
+  <div class="row"><label>Saturation</label><input type="range" id="adjS" min="-100" max="100" step="1"><output></output></div>
+  <div class="row"><label>Hue</label><input type="range" id="adjH" min="-180" max="180" step="1"><output></output></div>
+  <div class="row"><label>Gamma</label><input type="range" id="adjG" min="20" max="300" step="5"><output></output></div>
+  <div class="row"><label>Sharpen</label><input type="range" id="adjSh" min="0" max="100" step="1"><output></output></div>
+  <label class="ck"><input type="checkbox" id="adjGray"> Greyscale</label>
+  <label class="ck"><input type="checkbox" id="adjInv"> Invert (negative)</label>
+  <p class="fmtnote">The original pixels are kept: open Adjust again to change or reset these.</p>
+  <div class="foot"><button class="btn ghost" id="adjReset">Reset</button><span style="flex:1"></span><button class="btn ghost" id="adjCancel">Cancel</button><button class="btn primary" id="adjOk">OK</button></div>
 </div>
 
 <!-- HOME / PROJECTS -->
@@ -546,7 +606,7 @@
   </div>
 </div>
 
-<input type="file" id="fileImport" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+<input type="file" id="fileImport" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif,image/tiff,image/svg+xml,.tif,.tiff" hidden>
 <input type="file" id="fileOpen" accept=".json,.tee.json,application/json" hidden>
 <div class="toast" id="toast"></div>
 <div class="scrim" id="scrim"></div>
@@ -561,6 +621,7 @@
 <script src="app/js/clip.js"></script>
 <script src="app/js/blend.js"></script>
 <script src="app/js/touch.js"></script>
+<script src="app/js/bitmap.js"></script>
 <script src="app/js/export.js"></script>
 <script src="app/js/storage.js"></script>
 <script src="app/js/main.js"></script>
