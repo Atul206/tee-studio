@@ -222,7 +222,7 @@ const Bitmap = (() => {
     const W = o.getScaledWidth(), H = o.getScaledHeight(), c = o.getCenterPoint();
     o.setSrc(url, () => {
       o.set({cropX: 0, cropY: 0, width: cnv.width, height: cnv.height, scaleX: W / cnv.width, scaleY: H / cnv.height});
-      if (o.filters && o.filters.length) o.applyFilters();
+      if (o.filters && o.filters.length) rebuild(o);
       o.setPositionByOrigin(c, 'center', 'center'); o.set('dirty', true);
       commit(o); done && done();
     });
@@ -270,7 +270,8 @@ const Bitmap = (() => {
     await tick();
     try {
       // the crop goes into the new pixels: only what shows is resampled
-      const el = o._originalElement || o.getElement();
+      const el = o._originalElement || o.getElement(), full = o.getOriginalSize();
+      if (o.bg && o.bg.poly) o.bg = Object.assign({}, o.bg, {poly: o.bg.poly.map(([u, v]) => [(u * full.width - (o.cropX || 0)) / o.width, (v * full.height - (o.cropY || 0)) / o.height])});
       const cnv = await resamplePixels(el, o.cropX || 0, o.cropY || 0, o.width, o.height, w, h, $('rsMethod').value);
       await new Promise(res => setPixels(o, cnv, res));
       $('resample').classList.remove('on'); toast(`Resampled to ${w} × ${h} px · ${info(o).split('· ')[1]}`);
@@ -294,7 +295,13 @@ const Bitmap = (() => {
     return f;
   }
   let adjO = null, adjKeep = null, adjRaf = 0;
-  function applyAdj(o, a){ o.adj = Object.assign({}, a); o.filters = filtersFor(a); o.applyFilters(); o.set('dirty', true); canvas.requestRenderAll(); }
+  // background removal works on the original colours, so it comes first; the adjustments follow
+  function rebuild(o){
+    const F = fabric.Image.filters;
+    o.filters = (o.bg && F.RemoveBg ? [new F.RemoveBg({bg: o.bg})] : []).concat(filtersFor(Object.assign({}, ADJ0, o.adj || {})));
+    o.applyFilters(); o.set('dirty', true); canvas.requestRenderAll();
+  }
+  function applyAdj(o, a){ o.adj = Object.assign({}, a); rebuild(o); }
   function readAdj(){ const a = {}; Object.entries(ADJ_IDS).forEach(([k, id]) => a[k] = +$(id).value); a.gray = $('adjGray').checked; a.inv = $('adjInv').checked; return a; }
   function showAdj(a){
     Object.entries(ADJ_IDS).forEach(([k, id]) => { $(id).value = a[k]; $(id).nextElementSibling.textContent = k === 'g' ? (a[k] / 100).toFixed(2) : a[k]; });
@@ -302,6 +309,7 @@ const Bitmap = (() => {
   }
   function openAdjust(){
     const o = canvas.getActiveObject(); if (!isImg(o)) return toast('Select a picture to adjust');
+    if (typeof BgRemove !== 'undefined') BgRemove.close(true);
     adjO = o; adjKeep = Object.assign({}, ADJ0, o.adj || {});
     showAdj(adjKeep); $('adjust').classList.add('on');
   }
@@ -403,6 +411,7 @@ const Bitmap = (() => {
     if (cmd === 'cropcancel') return cancelCrop();
     if (cmd === 'uncrop') return uncrop();
     if (cmd === 'save') return savePixels();
+    if (cmd === 'rmbg') return BgRemove.open();
   }
   function syncBar(o){
     $('bmInfo').textContent = info(o);
@@ -413,5 +422,6 @@ const Bitmap = (() => {
   canvas.on('selection:cleared', () => { if (adjO && !crop) closeAdjust(true); });
   canvas.on('selection:updated', () => { if (adjO && canvas.getActiveObject() !== adjO) closeAdjust(true); });
 
-  return {readDpi, withDpi, importImage, run, syncBar, isImg, info, dpiOf, get cropping(){ return !!crop; }, cancelCrop};
+  function closePanels(){ closeAdjust(true); cancelCrop(); }
+  return {readDpi, withDpi, importImage, run, syncBar, isImg, info, dpiOf, rebuild, closePanels, boxPass, get cropping(){ return !!crop; }, cancelCrop};
 })();

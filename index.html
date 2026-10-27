@@ -79,7 +79,8 @@
     </div></div>
     <div class="mi"><button>Bitmaps</button><div class="dd">
       <button data-cmd="import">Import picture… <kbd>⌘I</kbd></button>
-      <hr><button data-cmd="bmp:resample">Resample…</button>
+      <hr><button data-cmd="bmp:rmbg">Remove background…</button>
+      <button data-cmd="bmp:resample">Resample…</button>
       <button data-cmd="bmp:adjust">Adjust (brightness, colour, sharpen)…</button>
       <button data-cmd="bmp:crop">Crop picture</button>
       <button data-cmd="bmp:uncrop">Reset crop</button>
@@ -292,6 +293,7 @@
       <span class="sep"></span>
       <span class="hint" id="bmInfo" title="Pixel size and the resolution it prints at, at this size"></span>
       <button class="btn ghost mini" data-cmd="bmp:resample" title="Give the picture a new pixel size or resolution">Resample…</button>
+      <button class="btn ghost mini" data-cmd="bmp:rmbg" title="Make the background transparent: by colour, by a boundary you draw, or both">Remove background…</button>
       <button class="btn ghost mini" data-cmd="bmp:adjust" title="Brightness, contrast, colour, sharpen">Adjust…</button>
       <button class="btn ghost mini" data-cmd="bmp:crop" title="Drag an area to keep">Crop</button>
       <button class="btn ghost mini" data-cmd="bmp:uncrop" id="bmUncrop" title="Show the whole picture again">Reset crop</button>
@@ -578,6 +580,25 @@
   <div class="foot"><button class="btn ghost" id="adjReset">Reset</button><span style="flex:1"></span><button class="btn ghost" id="adjCancel">Cancel</button><button class="btn primary" id="adjOk">OK</button></div>
 </div>
 
+<!-- REMOVE BACKGROUND (floats beside the canvas: pick colours and draw the boundary on the picture) -->
+<div class="floatpanel" id="rmbg">
+  <h3>Remove background</h3>
+  <label class="ck"><input type="checkbox" id="bgColour"> Remove the background colour</label>
+  <div id="bgColourOpts">
+    <div class="row"><label>Colours</label><span class="sws" id="bgSw"></span><button class="btn ghost mini" id="bgPick" title="Then click the background on the picture (up to four colours)">Pick</button><button class="btn ghost mini" id="bgAuto" title="Learn the colours from the picture's edges">Auto</button></div>
+    <div class="row"><label>Tolerance</label><input type="range" id="bgTol" min="0" max="100" step="1"><output></output></div>
+    <div class="row"><label>Softness</label><input type="range" id="bgSoft" min="0" max="20" step="1"><output></output></div>
+    <label class="ck"><input type="checkbox" id="bgContig"> Only background touching the edges</label>
+    <label class="ck"><input type="checkbox" id="bgSpecks"> Remove specks</label>
+    <label class="ck"><input type="checkbox" id="bgClean"> Clean edge colours</label>
+  </div>
+  <div class="row"><label>Boundary</label><button class="btn ghost mini" id="bgDraw" title="Click around the part, or drag to draw freehand">Draw…</button><button class="btn ghost mini" id="bgClear">Clear</button></div>
+  <div class="row"><label></label><div class="seg" id="bgPolyMode"><button data-v="keep" class="on">Keep inside</button><button data-v="cut">Remove inside</button></div></div>
+  <label class="ck"><input type="checkbox" id="bgInvert"> Invert: keep what would be removed</label>
+  <p class="fmtnote" id="bgNote"></p>
+  <div class="foot"><button class="btn ghost" id="bgReset">Reset</button><span style="flex:1"></span><button class="btn ghost" id="bgCancel">Cancel</button><button class="btn primary" id="bgOk">OK</button></div>
+</div>
+
 <!-- HOME / PROJECTS -->
 <div class="modal home" id="home">
   <div class="homebox">
@@ -622,6 +643,7 @@
 <script src="app/js/blend.js"></script>
 <script src="app/js/touch.js"></script>
 <script src="app/js/bitmap.js"></script>
+<script src="app/js/bgremove.js"></script>
 <script src="app/js/export.js"></script>
 <script src="app/js/storage.js"></script>
 <script src="app/js/main.js"></script>

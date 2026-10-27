@@ -5,7 +5,7 @@ const PX_PER_IN = 20;               // scene units: 20 px = 1 inch
 const PA_IN = {w:12, h:16};
 const PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;
 const DEF_STROKE = 3 * PX_PER_IN / 72;   // 3 pt
-const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj'];
+const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj','bg'];
 const FONTS = ['Bebas Neue','Anton','Oswald','Montserrat','Inter','Pacifico','Lobster','Permanent Marker','Bungee','Playfair Display','Rubik Mono One','Caveat'];
 const SHIRTS = {Black:'#1f2937', White:'#f3f4f6', Heather:'#9ca3af', Navy:'#1e3a8a', Red:'#b91c1c', Forest:'#14532d', Sand:'#d6c7a1'};
 const PALETTE = ['#000000','#ffffff','#1f2937','#4b5563','#9ca3af','#e5e7eb','#7f1d1d','#ef4444','#f97316','#f59e0b','#fde68a','#facc15','#84cc16','#22c55e','#14532d','#10b981','#06b6d4','#0ea5e9','#3b82f6','#1e3a8a','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78350f','#a16207','#c2b280','#d6c7a1','#c0c0c0','#d4af37','#b87333'];
