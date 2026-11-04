@@ -26,7 +26,11 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 |---|---|
 | Devices | Desktop, tablet and phone layouts; pinch-zoom and two-finger pan, long-press menus, double-tap, larger touch handles |
 | Workspace | Menu bar, context property bar, toolbox, rulers in inches, colour palette (left-click fill, right-click outline), layers panel, 12 × 16 in print area on a T-shirt mockup (7 shirt colours, front and back pages) |
-| Drawing | Rectangle, ellipse, star, line, pen, freehand, brush, text with 12 embedded Google Fonts |
+| Toolbox | Every tool of CorelDRAW's basic toolbox, in flyouts and a Tools menu |
+| Curves | Freehand, 2-Point Line, Bezier, Pen, B-Spline, Polyline, 3-Point Curve, Artistic Media (Preset, Brush, Sprayer, Calligraphic, Expression), Smart Drawing |
+| Shapes | Rectangle, Ellipse and their 3-Point versions, Polygon, Star, Complex Star, Graph Paper, Spiral, 71 Basic, Arrow, Flowchart, Banner and Callout shapes |
+| Editing tools | Smudge, Roughen, Free Transform, Crop, Knife, Eraser, Virtual Segment Delete, Smart Fill, Zoom, Pan |
+| Text, tables, dimensions | Artistic and paragraph text with 12 embedded Google Fonts; tables with merged cells; Parallel, Horizontal/Vertical, Angular and Segment dimensions that follow their size; 3-Point Callout |
 | Pick tool | Second-click rotate/skew with a movable centre, Shift/Ctrl/Alt handle modifiers, Space drops a copy, right-drag menu, Alt+click dig, smart duplicate, snapping and magenta alignment guides with equal spacing and sizes |
 | Shape tool | Node editing: drag nodes, handles and segments, add/delete with refit, cusp/smooth/symmetrical, to line/curve, break/join/close, reverse, extract |
 | Shaping | Weld, Trim, Intersect, Simplify, Front/Back minus, Combine, Break apart, Convert to curves — text included |
@@ -43,7 +47,7 @@ Plain HTML, CSS and classic scripts — no build step, no modules, no `fetch`, s
 ```
 index.html        the app
 app/styles.css
-app/js/           editor, storage, export, bitmaps, background removal, shaping, text, nodes, pick tool, effects, clip frames, blend
+app/js/           editor, tools, tables, dimensions, storage, export, bitmaps, background removal, shaping, text, nodes, pick tool, effects, clip frames, blend
 lib/              Fabric.js, ag-psd, jsPDF, paper.js, opentype.js, Clipper
 fonts/            embedded Google Fonts (display + outlines)
 my-designs/       your designs folder (contents are git-ignored)

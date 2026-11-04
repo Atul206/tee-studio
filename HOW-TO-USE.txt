@@ -34,11 +34,63 @@ PHONES & TABLETS
   panels open as a sheet from the bottom and the menus are behind ☰.
   Pinch with two fingers    zoom (the point between your fingers stays put)
   Drag with two fingers     move around the page
-  Long-press                right-click menu (objects, nodes in the Shape tool)
+  Long-press                the app's own right-click menu (objects, nodes in
+                            the Shape tool); the browser's copy/cut menu stays away
+  Long-press a toolbox tool shows the other tools in its flyout (so does tapping
+                            the tool you are already on)
   Double-tap                double-click (Focus mode on a group, Shape tool...)
   Palette                   tap = fill · press and hold = outline
   Phones and tablets save designs inside the browser (Android/iOS browsers
   can't write to folders) and exports download.
+
+ALL THE TOOLS
+  In the toolbox a small corner arrow means more tools sit behind that button:
+  click the arrow or hold the button to see them. The button then shows the tool
+  you used last. The Tools menu lists every tool by name.
+
+  Pick (V)                 select, move, scale, rotate
+  Free Transform           rotate, reflect, scale or skew about where you press;
+                           Alt scales, Ctrl skews, Shift reflects; can work on a copy
+  Shape (F10)              edit the nodes of a curve
+  Smudge                   select a shape, then drag its outline to smear it
+  Roughen                  select a shape, then drag over its outline to add spikes
+  Crop (C)                 drag the area, then Enter or double-click inside. Keeps
+                           what is inside, of the selection or of everything
+  Knife (K)                drag across objects to split them: straight or freehand,
+                           with a gap, or kept as one object
+  Eraser (X)               drag over an object to wipe it away; double-click deletes
+  Virtual Segment Delete   click a stretch of outline between crossings to remove it,
+                           or drag a box or line across several
+  Zoom (Z) · Pan (H)       click or drag a box to zoom · drag to move the view
+  Freehand (F5)            drag a curve; click then click for a straight line
+  2-Point Line (L)         drag, or click both ends; Ctrl keeps to 15 degree steps
+  Bezier                   click for a corner, drag for a curve; first node closes;
+                           Enter or double-click finishes; Ctrl+Z steps back
+  Pen (P)                  the same, previewing the next segment; C while pulling
+                           makes a cusp
+  Artistic Media (B)       Preset, Brush, Sprayer, Calligraphic and Expression strokes
+  B-Spline                 click control points that the curve follows
+  Polyline                 clicks add straight lines, drags add freehand stretches
+  3-Point Curve            drag start to end, then click the point it passes through
+  Smart Fill               click in an enclosed area to make it an object of its own
+  Smart Drawing            rough strokes become lines, rectangles, triangles, ellipses
+  Rectangle (F6) · Ellipse (F7)   drag; Ctrl keeps it square or round, Shift draws
+                           from the centre (Shift used to make the square: it is Ctrl now)
+  3-Point Rectangle · 3-Point Ellipse   drag the base, then click to set the size
+  Polygon (Y) · Star (S) · Complex Star   drag; points and sharpness on the bar
+  Graph Paper (D) · Spiral (A)   drag; rows and columns, or revolutions, on the bar
+  Basic · Arrow · Flowchart · Banner · Callout Shapes   71 shapes: pick one on the bar
+  Text (F8)                click for a heading, drag a frame for a wrapping paragraph
+  Table                    drag to draw. Click a cell to type, Tab moves on, drag
+                           across cells, drag lines to resize, click beside an edge
+                           for a row or column; merge, split, fills and borders on
+                           the bar. Double-click a table with Pick to edit it
+  Parallel · Horizontal or Vertical Dimension   the two points, then where the line goes
+  Angular Dimension        the corner, each side, then the size of the arc
+  Segment Dimension        click a segment, then where the line goes
+  3-Point Callout          the tip, the bend, then type
+  Dimensions read their own size: scale one to double and it says double. Units,
+  decimals, ends and text are on the bar. Break apart makes plain curves and text.
 
 PICK TOOL  (V — works like CorelDRAW / TraceDraw)
   Click again on a selected object   rotate/slant handles: corner arrows turn,

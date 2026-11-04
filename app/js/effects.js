@@ -9,7 +9,7 @@ const MM = PX_PER_IN / 25.4;    // scene units per millimetre
 const Effects = {
   hasAny: o => !!(o && o.fx && (o.fx.shadow || o.fx.contour || o.fx.envelope || o.fx.distort || o.fx.blend || o.fx.transp)),
   warps: o => !!(o && o.fx && (o.fx.envelope || o.fx.distort)),
-  canShape: o => o && !['group', 'image', 'activeSelection', 'clipframe'].includes(o.type),
+  canShape: o => o && !['group', 'image', 'activeSelection', 'clipframe', 'table', 'dimension'].includes(o.type),
 
   /* ---------- small math ---------- */
   inv: m => fabric.util.invertTransform(m),

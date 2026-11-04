@@ -3,6 +3,14 @@
    drawer/sheet, two-finger pinch-zoom and pan, long-press for the right-click menus, double-tap for
    double-click, and long-press on a palette swatch for the outline colour. */
 
+/* ---------- the browser's own long-press menu (copy, cut, select all…) never opens over the app ---------- */
+(function(){
+  const isField = t => !!(t && t.closest && t.closest('input, textarea, select, [contenteditable="true"]')) && !t.hasAttribute('data-fabric-hiddentextarea');
+  document.addEventListener('contextmenu', e => { if (!isField(e.target)) e.preventDefault(); }, true);
+  document.addEventListener('selectstart', e => { if (!isField(e.target)) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', e => { if (!isField(e.target)) e.preventDefault(); }, true);
+})();
+
 const Touch = {
   suppressClick: false,
   openDock(on){ document.querySelector('.dock').classList.toggle('open', on); $('scrim').classList.toggle('on', on); if (on) refreshLayersSoon(); },
@@ -43,6 +51,7 @@ window.addEventListener('resize', () => { if (!Touch.small()){ Touch.openDock(fa
     const m = mid(e.touches), r = canvas.upperCanvasEl.getBoundingClientRect();
     pinch = {d: dist(e.touches), z: zoom, p: toScene(m), r};
     clearTimeout(lp && lp.t); lp = null;
+    if (Tools.active()) Tools.cancelGesture();
   }, {capture: true, passive: false});
   stage.addEventListener('touchmove', e => {
     if (!pinch) return;
@@ -79,7 +88,7 @@ let lp = null;
   };
   el.addEventListener('touchstart', e => {
     clearTimeout(lp && lp.t); lp = null;
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1 || Tools.active()) return;
     const t = e.touches[0]; lp = {x: t.clientX, y: t.clientY, t: setTimeout(fire, 550)};
   }, {passive: true});
   el.addEventListener('touchmove', e => { if (lp && Math.hypot(e.touches[0].clientX - lp.x, e.touches[0].clientY - lp.y) > 10){ clearTimeout(lp.t); lp = null; } }, {passive: true});

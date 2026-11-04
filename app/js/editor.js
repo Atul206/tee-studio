@@ -5,7 +5,7 @@ const PX_PER_IN = 20;               // scene units: 20 px = 1 inch
 const PA_IN = {w:12, h:16};
 const PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;
 const DEF_STROKE = 3 * PX_PER_IN / 72;   // 3 pt
-const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj','bg'];
+const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj','bg','spline'];
 const FONTS = ['Bebas Neue','Anton','Oswald','Montserrat','Inter','Pacifico','Lobster','Permanent Marker','Bungee','Playfair Display','Rubik Mono One','Caveat'];
 const SHIRTS = {Black:'#1f2937', White:'#f3f4f6', Heather:'#9ca3af', Navy:'#1e3a8a', Red:'#b91c1c', Forest:'#14532d', Sand:'#d6c7a1'};
 const PALETTE = ['#000000','#ffffff','#1f2937','#4b5563','#9ca3af','#e5e7eb','#7f1d1d','#ef4444','#f97316','#f59e0b','#fde68a','#facc15','#84cc16','#22c55e','#14532d','#10b981','#06b6d4','#0ea5e9','#3b82f6','#1e3a8a','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78350f','#a16207','#c2b280','#d6c7a1','#c0c0c0','#d4af37','#b87333'];
@@ -283,42 +283,29 @@ const TOOL_INFO = {
   fxdistort:['Distort', 'Drag on an object: the distortion centres where you start.'],
   fxblend:['Blend', 'Drag from the start object to the end object.'],
   fxtransp:['Transparency', 'Click an object; drag across it for a gradient.'],
-  zoom:['Zoom', 'Click to zoom in, ⌥/Alt-click to zoom out. ⌘/Ctrl + scroll also zooms.'],
-  free:['Freehand', 'Drag to draw a freehand curve.'],
-  brush:['Artistic media', 'Drag to paint a thick brush stroke.'],
-  pen:['Pen', 'Click to place points. Click the first point to close, double-click or Enter to finish.'],
-  rect:['Rectangle', 'Drag to draw. Hold Shift for a square.'],
-  ellipse:['Ellipse', 'Drag to draw. Hold Shift for a circle.'],
-  star:['Star', 'Drag to draw a star.'],
-  line:['Line', 'Drag to draw a straight line. Hold Shift to snap to 45°.'],
-  text:['Text', 'Click where the text should go, then type.'],
   eyedrop:['Eyedropper', 'Click an object to copy its fill & outline onto the current selection.'],
 };
+const toolLabel = t => TOOL_INFO[t] ? TOOL_INFO[t][0] : Toolbox.name(t);
+const toolHint = t => TOOL_INFO[t] ? TOOL_INFO[t][1] : Toolbox.tip(t);
 let eyeTargets = [];
 function setTool(t){
-  if (t.startsWith('soon:')) return soon(t.slice(5));
   if (t.startsWith('cmd:')) return run(t.slice(4));
-  if (tool === 'pen' && t !== 'pen') finishPen(false);
+  // what was selected when the tool was picked is what the editing tools work on
+  const picked = actives().slice();
+  if (Tools.defs[tool]){ Tools.leaving = true; Tools.leave(tool); Tools.leaving = false; }
   if (t === 'eyedrop') eyeTargets = actives().slice();
   const wasActive = canvas.getActiveObject();
   if (tool === 'shape' && t !== 'shape') Nodes.stop(true);
   const wasFx = FxTool.active();
   tool = t;
-  document.querySelectorAll('.tool').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+  Toolbox.close(); Toolbox.sync(t); Tools.closeInline(); Tools.closePopup();
   const draw = !['pick', 'eyedrop'].includes(t);
-  canvas.isDrawingMode = t === 'free' || t === 'brush';
-  if (canvas.isDrawingMode){
-    const br = new fabric.PencilBrush(canvas);
-    br.color = (t === 'brush' ? defFill : (defStroke || defFill)) || '#111';
-    br.width = t === 'brush' ? 14 : 3; br.decimate = 2;
-    canvas.freeDrawingBrush = br;
-  }
+  canvas.isDrawingMode = false;
   canvas.selection = t === 'pick';
   canvas.skipTargetFind = draw;
-  canvas.defaultCursor = t === 'zoom' ? 'zoom-in' : t === 'text' ? 'text' : draw ? 'crosshair' : 'default';
+  canvas.defaultCursor = t === 'text' ? 'text' : draw ? 'crosshair' : 'default';
   canvas.hoverCursor = t === 'eyedrop' ? 'copy' : 'move';
   if (draw) canvas.discardActiveObject();
-  $('penHint').classList.toggle('on', t === 'pen');
   if (FxTool.active()){ canvas.defaultCursor = 'crosshair'; if (!wasFx) { if (wasActive) canvas.setActiveObject(wasActive); FxTool.start(); } else FxTool.bar(); } else if (wasFx) { FxTool.stop(); }
   $('pbFxCommon').classList.toggle('on', FxTool.active());
   if (t === 'shape'){
@@ -327,9 +314,9 @@ function setTool(t){
     else if (wasActive && Nodes.convertible(wasActive)){ Nodes.pending = wasActive; toast('Double-click the shape to turn it into a curve and edit its nodes'); }
   }
   Nodes.bar();
+  Tools.enter(t, picked);
   canvas.requestRenderAll(); refresh();
 }
-document.querySelectorAll('.tool').forEach(b => b.onclick = () => setTool(b.dataset.tool));
 
 let drawing = null, start = null;
 function pointer(o){ return canvas.getPointer(o.e); }
@@ -337,8 +324,7 @@ canvas.on('mouse:down', o => {
   if (preview) return;
   if (tool === 'shape') return Nodes.down(o);
   if (FxTool.active()) return FxTool.down(o);
-  const p = pointer(o);
-  if (tool === 'zoom'){ const c = canvas.getPointer(o.e, true); setZoom(zoom * (o.e.altKey ? 0.8 : 1.25), c.x, c.y); return; }
+  if (Tools.active()) return Tools.down(o);
   if (tool === 'eyedrop'){
     if (!o.target) return;
     const src = o.target.type === 'group' ? o.target.getObjects()[0] : o.target;
@@ -349,83 +335,16 @@ canvas.on('mouse:down', o => {
     if (back.length) canvas.setActiveObject(back.length > 1 ? new fabric.ActiveSelection(back, {canvas}) : back[0]);
     refresh(); return;
   }
-  if (tool === 'text'){
-    const t = makeText('Your text', {fontSize:40}); t.set({left: p.x, top: p.y - 20});
-    canvas.add(t); setTool('pick'); canvas.setActiveObject(t); t.enterEditing(); t.selectAll(); canvas.requestRenderAll(); return;
-  }
-  if (tool === 'pen'){ penClick(p); return; }
-  if (['rect','ellipse','star','line'].includes(tool)){
-    start = Pick.snapPoint(p);
-    if (tool === 'rect') drawing = styleNew(new fabric.Rect({left:p.x, top:p.y, width:1, height:1}));
-    if (tool === 'ellipse') drawing = styleNew(new fabric.Ellipse({left:p.x, top:p.y, rx:1, ry:1}));
-    if (tool === 'star'){ drawing = styleNew(makeStar(5, 21)); drawing.set({left:p.x, top:p.y, scaleX:.01, scaleY:.01}); }
-    if (tool === 'line') drawing = new fabric.Line([p.x, p.y, p.x, p.y], {stroke: defStroke || defFill || '#111', strokeWidth:3, strokeLineCap:'round', fill:null});
-    canvas.add(drawing);
-  }
 });
 canvas.on('mouse:move', o => {
   const p = pointer(o);
   $('stCur').textContent = `${inch(p.x)}, ${inch(p.y)} in`;
   if (tool === 'shape') return Nodes.move(o);
   if (FxTool.active()) return FxTool.move(o);
-  if (tool === 'pen'){ penMove(p); return; }
-  if (!drawing) return;
-  const sp = Pick.snapPoint(p);
-  let w = sp.x - start.x, h = sp.y - start.y;
-  if (o.e.shiftKey && tool !== 'line'){ const m = Math.max(Math.abs(w), Math.abs(h)); w = Math.sign(w || 1) * m; h = Math.sign(h || 1) * m; }
-  const left = Math.min(start.x, start.x + w), top = Math.min(start.y, start.y + h), aw = Math.abs(w), ah = Math.abs(h);
-  if (tool === 'rect') drawing.set({left, top, width: aw, height: ah});
-  if (tool === 'ellipse') drawing.set({left, top, rx: aw / 2, ry: ah / 2});
-  if (tool === 'star') drawing.set({left, top, scaleX: Math.max(aw, 1) / drawing.width, scaleY: Math.max(ah, 1) / drawing.height});
-  if (tool === 'line'){
-    let x2 = sp.x, y2 = sp.y;
-    if (o.e.shiftKey){ const a = Math.round(Math.atan2(h, w) / (Math.PI / 4)) * Math.PI / 4, d = Math.hypot(w, h); x2 = start.x + d * Math.cos(a); y2 = start.y + d * Math.sin(a); }
-    drawing.set({x2, y2});
-  }
-  drawing.setCoords(); canvas.requestRenderAll();
+  if (Tools.active()) return Tools.move(o);
 });
-canvas.on('mouse:up', () => {
-  if (!drawing) return;
-  const o = drawing; drawing = null;
-  const tiny = o.getScaledWidth() < 3 && o.getScaledHeight() < 3;
-  if (tiny){
-    if (tool === 'line'){ o.set({x2: o.x1 + 80, y2: o.y1}); }
-    else if (tool === 'star'){ o.set({scaleX: 1, scaleY: 1}); }
-    else if (tool === 'ellipse'){ o.set({rx: 40, ry: 40}); }
-    else o.set({width: 80, height: 80});
-  }
-  o.setCoords(); Pick.clearGuides(); Pick.targets = null; setTool('pick'); canvas.setActiveObject(o); canvas.requestRenderAll(); queueSnapshot();
-});
-canvas.on('path:created', e => { e.path.set({name: tool === 'brush' ? 'Brush stroke' : 'Freehand', strokeLineCap:'round', strokeLineJoin:'round', strokeUniform:true}); queueSnapshot(); });
-
-/* pen tool */
-let penPts = [], penPreview = null;
-function penClick(p){
-  if (penPts.length >= 3 && Math.hypot(p.x - penPts[0].x, p.y - penPts[0].y) < 8 / zoom) return finishPen(true);
-  const last = penPts[penPts.length - 1];
-  if (last && Math.hypot(p.x - last.x, p.y - last.y) < 1) return;
-  penPts.push({x: p.x, y: p.y}); penMove(p);
-}
-function penMove(p){
-  if (!penPts.length) return;
-  if (penPreview) canvas.remove(penPreview);
-  restoring = true;
-  penPreview = new fabric.Polyline(penPts.concat([p]), {fill:'', stroke:'#3b82f6', strokeWidth:1.5 / zoom, strokeDashArray:[4 / zoom, 3 / zoom], selectable:false, evented:false, excludeFromExport:true, objectCaching:false});
-  canvas.add(penPreview); restoring = false; canvas.requestRenderAll();
-}
-function finishPen(closed){
-  if (penPreview){ restoring = true; canvas.remove(penPreview); restoring = false; penPreview = null; }
-  const pts = penPts; penPts = [];
-  if (pts.length >= 2){
-    const o = closed
-      ? styleNew(new fabric.Polygon(pts), {name:'Pen shape'})
-      : new fabric.Polyline(pts, {fill:'', stroke: defStroke || defFill || '#111', strokeWidth:3, strokeLineJoin:'round', strokeLineCap:'round', name:'Pen path', strokeUniform:true});
-    canvas.add(o); if (tool === 'pen'){ setTool('pick'); } canvas.setActiveObject(o); queueSnapshot();
-  }
-  canvas.requestRenderAll();
-}
-canvas.on('mouse:dblclick', o => { if (tool === 'pen'){ penPts.pop(); finishPen(false); } if (tool === 'shape') Nodes.dbl(o); if (FxTool.active()) FxTool.dbl(o); });
-canvas.on('mouse:up', o => { if (tool === 'shape') Nodes.up(o); if (FxTool.active()) FxTool.up(o); });
+canvas.on('mouse:dblclick', o => { if (tool === 'shape') Nodes.dbl(o); if (FxTool.active()) FxTool.dbl(o); if (Tools.active()) Tools.dbl(o); });
+canvas.on('mouse:up', o => { if (tool === 'shape') Nodes.up(o); if (FxTool.active()) FxTool.up(o); if (Tools.active()) Tools.up(o); });
 
 /* snapping and alignment guides live in pick.js; these are their switches (Alt+Q, Alt+Shift+A) */
 function setSnap(on){ Pick.snapOn = on; $('bSnap').style.background = on ? 'var(--accent-soft)' : ''; toast('Snapping ' + (on ? 'on' : 'off')); }
@@ -454,7 +373,8 @@ FONTS.forEach(f => { const o = document.createElement('option'); o.value = f; o.
 function syncBars(){
   const a = canvas.getActiveObject(), objs = actives();
   const isText = objs.length && objs.every(o => o.text != null);
-  $('pbNone').classList.toggle('on', !a && tool !== 'shape' && !FxTool.active());
+  $('pbNone').classList.toggle('on', !a && tool !== 'shape' && !FxTool.active() && !Tools.active());
+  Tools.context(a, objs);
   const BM = typeof Bitmap !== 'undefined', cropping = BM && Bitmap.cropping, pic = BM && objs.length === 1 && Bitmap.isImg(a);
   $('pbXform').classList.toggle('on', !!a && !cropping);
   $('pbImage').classList.toggle('on', pic && !cropping);
@@ -465,8 +385,8 @@ function syncBars(){
   const onPath = objs.length === 1 && isText && !!a.fitD;
   $('pbPath').classList.toggle('on', onPath);
   $('pbBreak').classList.toggle('on', objs.length === 1 && a.type === 'path' && (a.path || []).filter(c => c[0] === 'M').length > 1);
-  $('ctxLabel').textContent = cropping ? 'Crop' : a ? (objs.length > 1 ? `${objs.length} objects` : kindOf(a)) : TOOL_INFO[tool][0];
-  $('toolHint').textContent = TOOL_INFO[tool][1];
+  $('ctxLabel').textContent = cropping ? 'Crop' : a ? (objs.length > 1 ? `${objs.length} objects` : kindOf(a)) : toolLabel(tool);
+  $('toolHint').textContent = toolHint(tool);
   if (a){
     const set = (id, v) => { if (document.activeElement !== $(id)) $(id).value = v; };
     const br = a.getBoundingRect(true, true);
@@ -859,10 +779,10 @@ document.querySelectorAll('.dtabs button').forEach(b => b.onclick = () => showDo
 const a0 = () => canvas.getActiveObject();
 document.addEventListener('keydown', e => {
   if (tool === 'shape' && !isTyping(e) && Nodes.keydown(e)){ e.preventDefault(); return; }
-  if (e.key === 'Escape'){ if (tool === 'pen'){ penPts = []; finishPen(false); } setTool('pick'); canvas.discardActiveObject(); canvas.requestRenderAll(); $('export').classList.remove('on'); return; }
+  if (Tools.active() && !isTyping(e) && Tools.key(e)){ e.preventDefault(); return; }
+  if (e.key === 'Escape'){ setTool('pick'); canvas.discardActiveObject(); canvas.requestRenderAll(); $('export').classList.remove('on'); return; }
   if (isTyping(e)) return;
   const mod = e.metaKey || e.ctrlKey, k = e.key.toLowerCase();
-  if (tool === 'pen' && e.key === 'Enter'){ finishPen(false); return; }
   if (mod){
     const map = {z: e.shiftKey ? 'redo' : 'undo', y:'redo', d:'dup', g: e.shiftKey ? 'ungroup' : 'group', c:'copy', v:'paste', a:'selall', s:'save', o:'open', i:'import', e:'export', n:'new', k: (FxTool.target || a0()) && Effects.hasAny(FxTool.target || a0()) ? 'fxbreak' : 'shape:breakapart'};
     if (map[k]){ e.preventDefault(); run(map[k]); }
@@ -884,7 +804,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.shiftKey && e.key === 'PageUp') return run('front');
   if (e.shiftKey && e.key === 'PageDown') return run('toback');
-  const tools = {v:'pick', r:'rect', e:'ellipse', s:'star', l:'line', p: canvas.getActiveObject() ? null : 'pen', f:'free', b:'brush', t:'text', z:'zoom', i:'eyedrop', F5:'free', F6:'rect', F7:'ellipse', F8:'text', F10:'shape'};
+  const tools = {v:'pick', r:'rect', e:'ellipse', s:'star', l:'line', p: canvas.getActiveObject() ? null : 'pen', f:'free', b:'brush', t:'text', z:'zoom', i:'eyedrop', h:'pan', y:'polygon', d:'graph', a:'spiral', x:'eraser', k:'knife', c:'crop', F5:'free', F6:'rect', F7:'ellipse', F8:'text', F10:'shape'};
   if (k === 'p' && canvas.getActiveObject()) return run('center');
   const t = tools[e.key] || tools[k]; if (t){ e.preventDefault(); setTool(t); }
   if (e.key === 'F9'){ e.preventDefault(); run('preview'); }

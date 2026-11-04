@@ -50,7 +50,7 @@ const Shaping = {
     return new fabric.Path(item.pathData, Object.assign(this.styleOf(styleFrom), {name}));
   },
 
-  unsupported(o){ return o.type === 'clipframe' || leafs([o]).some(l => l.type === 'image' || l.type === 'line'); },
+  unsupported(o){ return o.type === 'clipframe' || o.type === 'table' || o.type === 'dimension' || leafs([o]).some(l => l.type === 'image' || l.type === 'line'); },
   hasText(objs){ return leafs(objs).some(l => l.text != null); },
   ordered(objs){ const all = canvas.getObjects(); return objs.slice().sort((a, b) => all.indexOf(a) - all.indexOf(b)); },
   replace(oldObj, newObj){ const i = canvas.getObjects().indexOf(oldObj); canvas.remove(oldObj); if (newObj) canvas.insertAt(newObj, i); },
@@ -59,6 +59,7 @@ const Shaping = {
     const NEEDS_TWO = ['weld', 'trim', 'intersect', 'simplify', 'fmb', 'bmf', 'combine'];
     const LABEL = {weld:'Weld', trim:'Trim', intersect:'Intersect', simplify:'Simplify', fmb:'Front minus back', bmf:'Back minus front', combine:'Combine', breakapart:'Break apart', curves:'Convert to curves'};
     const sel = this.ordered(actives());
+    if (op === 'breakapart' && sel.some(o => o.type === 'dimension')) return Dimension.breakSel(sel);
     if (NEEDS_TWO.includes(op) && sel.length < 2) return toast(`${LABEL[op]}: select two or more shapes (Shift-click or drag a box)`);
     if (!sel.length) return toast(`${LABEL[op]}: select a shape first`);
     const bad = sel.filter(o => this.unsupported(o));
