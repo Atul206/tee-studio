@@ -606,7 +606,7 @@ const Nodes = {
     m.style.left = e.clientX + 'px'; m.style.top = e.clientY + 'px';
     m.onclick = ev => { const b = ev.target.closest('[data-n]'); if (b){ this.closeMenu(); this.run(b.dataset.n); } };
     document.body.appendChild(m); this.menu = m; this.menuEvent = e;
-    const r = m.getBoundingClientRect(); if (r.bottom > innerHeight) m.style.top = (e.clientY - r.height) + 'px'; if (r.right > innerWidth) m.style.left = (e.clientX - r.width) + 'px';
+    placeMenu(m, e.clientX, e.clientY);
   },
   closeMenu(){ if (this.menu){ this.menu.remove(); this.menu = null; } },
 };

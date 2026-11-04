@@ -107,8 +107,9 @@ const Store = {
     try { this.openData(await this.read(item), item.file, item.where); }
     catch(e){ toast('Could not open that project: ' + e.message); }
   },
-  async newProject(name, sample){
+  async newProject(name, sample, size){
     this.quiet = true; this.name = name.trim() || 'Untitled tee'; this.fileName = null;
+    setPageSize(size ? size.w : 12, size ? size.h : 16);
     pages = {front: null, back: null}; page = 'front'; setPageVisual();
     loadJSON(null, () => {
       if (sample) buildSample();
@@ -254,7 +255,7 @@ const Home = {
     });
   },
 };
-$('homeNew').onclick = () => Store.newProject($('homeName').value, false);
+$('homeNew').onclick = () => Store.newProject($('homeName').value, false, PageSize.home.value());
 $('homeSample').onclick = () => Store.newProject($('homeName').value || 'Stay Wild', true);
 $('homeOpenFile').onclick = () => $('fileOpen').click();
 $('homeResume').onclick = () => {

@@ -313,7 +313,7 @@ const Pick = {
     m.style.left = e.clientX + 'px'; m.style.top = e.clientY + 'px';
     m.onclick = ev => { const b = ev.target.closest('[data-i]'); if (b && !b.disabled){ this.closeMenu(); const it = items.find(x => x && x[0] === b.dataset.i); it[4](); } };
     document.body.appendChild(m); this.menuEl = m; this.menuEvent = e;
-    const r = m.getBoundingClientRect(); if (r.bottom > innerHeight) m.style.top = (e.clientY - r.height) + 'px'; if (r.right > innerWidth) m.style.left = (e.clientX - r.width) + 'px';
+    placeMenu(m, e.clientX, e.clientY);
   },
   closeMenu(){ if (this.menuEl){ this.menuEl.remove(); this.menuEl = null; } },
   contextMenu(e){

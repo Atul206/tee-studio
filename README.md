@@ -25,7 +25,7 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 | Area | Features |
 |---|---|
 | Devices | Desktop, tablet and phone layouts; pinch-zoom and two-finger pan, long-press menus, double-tap, larger touch handles |
-| Workspace | Menu bar, context property bar, toolbox, rulers in inches, colour palette (left-click fill, right-click outline), layers panel, 12 × 16 in print area on a T-shirt mockup (7 shirt colours, front and back pages) |
+| Workspace | Menu bar, context property bar, toolbox, rulers in inches, colour palette (left-click fill, right-click outline), layers panel, a print area of any size on a T-shirt mockup: T-shirt and paper presets or custom, set for each design (7 shirt colours, front and back pages) |
 | Toolbox | Every tool of CorelDRAW's basic toolbox, in flyouts and a Tools menu |
 | Curves | Freehand, 2-Point Line, Bezier, Pen, B-Spline, Polyline, 3-Point Curve, Artistic Media (Preset, Brush, Sprayer, Calligraphic, Expression), Smart Drawing |
 | Shapes | Rectangle, Ellipse and their 3-Point versions, Polygon, Star, Complex Star, Graph Paper, Spiral, 71 Basic, Arrow, Flowchart, Banner and Callout shapes |

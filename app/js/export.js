@@ -14,7 +14,7 @@ const FMT_NOTES = {
 };
 const BLEND_PSD = {'source-over':'normal', multiply:'multiply', screen:'screen', overlay:'overlay', darken:'darken', lighten:'lighten', difference:'difference'};
 const EX = {area: 'print', scale: 1, dpi: 300, unit: 'in', sel: []};
-const PRINT_R = {x: 0, y: 0, w: PA_W, h: PA_H};
+const PRINT_R = {x: 0, y: 0, get w(){ return PA_W; }, get h(){ return PA_H; }};
 const UNITS = {in: 1, cm: 2.54, mm: 25.4};
 const AREA_NAMES = {print: 'print area', artwork: 'artwork only', selection: 'selection only'};
 const MAX_SIDE = 30000, MAX_PIXELS = 250e6;   // past these browsers give up on a canvas
@@ -149,7 +149,7 @@ async function exportSVG(p, outlineAll, opt = {}){
 /* ---------- Mockup ---------- */
 function loadImg(src){ return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
 async function exportMockup(p){
-  const W = 2000, H = 2100, k = W / (PA_W / 0.36);
+  const W = 2000, H = 2100, k = W / SHIRT_W;
   const svg = $('shirt').cloneNode(true); svg.setAttribute('width', W); svg.setAttribute('height', H);
   const shirtImg = await loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg)));
   const design = await loadImg(await exportPNG(Math.round(PA_W * k / PA_IN.w), true, p));

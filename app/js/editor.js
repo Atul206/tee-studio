@@ -3,7 +3,7 @@
 const COARSE = matchMedia('(pointer: coarse)').matches;
 const PX_PER_IN = 20;               // scene units: 20 px = 1 inch
 const PA_IN = {w:12, h:16};
-const PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;
+let PA_W = PA_IN.w * PX_PER_IN, PA_H = PA_IN.h * PX_PER_IN;   // the page size can change: see setPageSize
 const DEF_STROKE = 3 * PX_PER_IN / 72;   // 3 pt
 const PROPS = ['name','lockedObj','selectable','evented','curve','fitD','pathPlace','fitAnchor','pathUserOffset','nodeTypes','fx','uid','adj','bg','spline'];
 const FONTS = ['Bebas Neue','Anton','Oswald','Montserrat','Inter','Pacifico','Lobster','Permanent Marker','Bungee','Playfair Display','Rubik Mono One','Caveat'];
@@ -62,13 +62,25 @@ function leafs(objs){ return objs.flatMap(o => o.type === 'group' ? leafs(o.getO
 // The canvas is always the size of the stage (a canvas the size of the zoomed shirt ran to 30+ megapixels on
 // phones). The view is (zoom, paL, paT): the print area's top-left in canvas pixels. The shirt picture and the
 // print-area frame are moved to match by CSS transform, which the browser composites cheaply.
-const SHIRT_W = PA_W / 0.36, SHIRT_H = SHIRT_W * 1.05;
+// the shirt keeps its size whatever the page: a 16 in wide page really is wider than a 12 in one on it
+const SHIRT_W = 12 * PX_PER_IN / 0.36, SHIRT_H = SHIRT_W * 1.05, PAGE_DROP = 0.22 * SHIRT_H;
+const inchText = v => String(+v.toFixed(2));
+function setPageSize(w, h){
+  PA_IN.w = w; PA_IN.h = h; PA_W = w * PX_PER_IN; PA_H = h * PX_PER_IN;
+  const t = `${inchText(w)} × ${inchText(h)} in`;
+  $('paHint').textContent = t; $('paPx').textContent = `${Math.round(w * 300)} × ${Math.round(h * 300)} px`;
+  $('paTag').textContent = 'Print area · ' + t; $('stSize').textContent = t + ' · RGB';
+  const ea = document.querySelector('#exArea [data-a="print"]'); if (ea) ea.title = `The whole ${t} print area`;
+  if (typeof Pick !== 'undefined') Pick.targets = null;
+  if (canvas.clipPath) canvas.clipPath = new fabric.Rect({left: 0, top: 0, width: PA_W, height: PA_H, absolutePositioned: true});
+  autoFit = true; fitZoom(); canvas.requestRenderAll();
+}
 function layout(){
   const s = $('stage'), sw = s.clientWidth, sh = s.clientHeight;
   if (canvas.getWidth() !== sw || canvas.getHeight() !== sh){ canvas.setDimensions({width: sw, height: sh}); canvas.calcOffset(); }
   const wrap = $('wrap');
   if (!wrap.style.width){ wrap.style.width = SHIRT_W + 'px'; wrap.style.height = SHIRT_H + 'px'; }
-  const wx = paL - (SHIRT_W - PA_W) / 2 * zoom, wy = paT - 0.22 * SHIRT_H * zoom;
+  const wx = paL - (SHIRT_W - PA_W) / 2 * zoom, wy = paT - PAGE_DROP * zoom;
   wrap.style.transform = `translate(${wx}px,${wy}px) scale(${zoom})`;
   Object.assign($('pa').style, {left: paL + 'px', top: paT + 'px', width: PA_W * zoom + 'px', height: PA_H * zoom + 'px'});
   canvas.setViewportTransform([zoom, 0, 0, zoom, paL, paT]);
@@ -84,14 +96,20 @@ function panBy(dx, dy){
 }
 function fitZoom(){
   const s = $('stage'), sw = s.clientWidth, sh = s.clientHeight;
-  if (matchMedia('(max-width: 767px)').matches){
+  if (PA_W < 120 && PA_H < 160){
+    // a small page (left chest, label): enough of it to work on, not the whole shirt
+    zoom = Math.max(0.3, Math.min(6, 0.6 * Math.min(sw / PA_W, sh / PA_H)));
+    paL = (sw - PA_W * zoom) / 2; paT = (sh - PA_H * zoom) / 2;
+  } else if (matchMedia('(max-width: 767px)').matches){
     // phones: the print area fills the screen (the shirt runs off the sides), centred
     zoom = Math.max(0.3, Math.min((sw - 24) / PA_W, (sh - 96) / PA_H));
     paL = (sw - PA_W * zoom) / 2; paT = (sh - PA_H * zoom) / 2 + 10;
   } else {
-    zoom = Math.max(0.3, Math.min((sw - 40) / SHIRT_W, (sh - 30) / SHIRT_H));
-    const wx = (sw - SHIRT_W * zoom) / 2, wy = (sh - SHIRT_H * zoom) / 2;
-    paL = wx + (SHIRT_W - PA_W) / 2 * zoom; paT = wy + 0.22 * SHIRT_H * zoom;
+    // the shirt and the page, which can reach past the shirt
+    const boxW = Math.max(SHIRT_W, PA_W), boxH = Math.max(SHIRT_H, PAGE_DROP + PA_H);
+    zoom = Math.max(0.3, Math.min((sw - 40) / boxW, (sh - 30) / boxH));
+    const wx = (sw - SHIRT_W * zoom) / 2, wy = (sh - boxH * zoom) / 2;
+    paL = wx + (SHIRT_W - PA_W) / 2 * zoom; paT = wy + PAGE_DROP * zoom;
   }
   layout();
 }
@@ -204,11 +222,13 @@ function redo(){ if (hi < hist.length - 1){ hi++; loadJSON(hist[hi], updateUndo)
 function updateUndo(){ $('bUndo').disabled = hi <= 0; $('bRedo').disabled = hi >= hist.length - 1; }
 // every change lands here: Store keeps a browser backup and writes the project file into the designs folder
 function autosave(){ if (typeof Store !== 'undefined') Store.changed(); }
-function projectData(){ return {app:'tee-studio', version:1, name: typeof Store !== 'undefined' ? Store.name : 'Untitled tee', shirt, page, pages: Object.assign({}, pages, {[page]: docJSON()})}; }
+function projectData(){ return {app:'tee-studio', version:1, name: typeof Store !== 'undefined' ? Store.name : 'Untitled tee', pageSize: {w: PA_IN.w, h: PA_IN.h}, shirt, page, pages: Object.assign({}, pages, {[page]: docJSON()})}; }
 // the drawing as saved: groups and clip frames being edited inside are folded back first
 function docJSON(){ return typeof Focus !== 'undefined' ? Focus.collapsed(() => canvas.toJSON(PROPS)) : canvas.toJSON(PROPS); }
 function openProject(data, cb){
   pages = Object.assign({front:null, back:null}, data.pages || {});
+  const ps = data.pageSize || {};   // files from before page sizes are 12 × 16 in
+  setPageSize(ps.w > 0 ? ps.w : 12, ps.h > 0 ? ps.h : 16);
   setShirt(data.shirt && SHIRTS[data.shirt] ? data.shirt : 'Black');
   page = 'front'; setPageVisual();
   loadJSON(pages.front, () => { hist = []; hi = -1; snapshot(); cb && cb(); });
@@ -227,6 +247,13 @@ function starPoints(n = 5, outer = 50, inner = 21){
 function makeStar(n, inner){ const s = new fabric.Polygon(starPoints(n, 50, inner), {objectCaching:false}); s.starPoints = n; return s; }
 function makeText(str, opts){
   return new fabric.IText(str, Object.assign({fontFamily:'Bebas Neue', fontSize:40, fill:defFill, textAlign:'center', charSpacing:40, lineHeight:1.05}, opts));
+}
+function placeMenu(m, x, y){
+  const gap = 8, W = innerWidth, H = innerHeight;
+  m.style.maxHeight = H - 2 * gap + 'px';
+  const r = m.getBoundingClientRect(), up = y + r.height > H - gap && y - r.height >= gap;
+  m.style.top = Math.max(gap, Math.min(up ? y - r.height : y, H - gap - r.height)) + 'px';
+  m.style.left = Math.max(gap, Math.min(x + r.width > W - gap ? x - r.width : x, W - gap - r.width)) + 'px';
 }
 function placeCenter(o, x = PA_W / 2, y = PA_H / 2){ o.setPositionByOrigin(new fabric.Point(x, y), 'center', 'center'); o.setCoords(); return o; }
 function addAndSelect(o){ canvas.add(o); canvas.setActiveObject(o); canvas.requestRenderAll(); }
@@ -711,6 +738,7 @@ function run(cmd){
   const a = canvas.getActiveObject();
   switch (cmd){
     case 'new': case 'home': Home.show(); break;
+    case 'pagesize': PageSize.open(); break;
     case 'open': $('fileOpen').click(); break;
     case 'save': Store.saveNow(true); break;
     case 'savecopy': download(URL.createObjectURL(new Blob([JSON.stringify(projectData())], {type:'application/json'})), Store.slug() + '.tee.json'); toast('Downloaded a copy of the project file'); break;

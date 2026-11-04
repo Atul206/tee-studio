@@ -27,6 +27,7 @@
       <button data-cmd="open">Open project file… <kbd>⌘O</kbd></button>
       <button data-cmd="save">Save now <kbd>⌘S</kbd></button>
       <button data-cmd="rename">Rename design…</button>
+      <button data-cmd="pagesize">Page size…</button>
       <button data-cmd="savecopy">Download a copy (.tee.json)</button>
       <button data-cmd="folder">Choose designs folder…</button>
       <hr><button data-cmd="import">Import image / SVG… <kbd>⌘I</kbd></button>
@@ -146,7 +147,7 @@
     <div class="pgrp on" id="pbNone">
       <span class="hint" id="toolHint">Click an object to select it. Drag on empty space to marquee-select.</span>
       <span class="sep"></span>
-      <span class="hint">Print area <b style="color:#d7d9de">12 × 16 in</b> · 300 DPI · 3600 × 4800 px</span>
+      <button class="btn ghost mini" data-cmd="pagesize">Page size…</button><span class="hint">Print area <b style="color:#d7d9de" id="paHint">12 × 16 in</b> · 300 DPI · <span id="paPx">3600 × 4800 px</span></span>
     </div>
     <div class="pgrp" id="pbText">
       <select class="sel" id="pFont" style="width:150px"></select>
@@ -487,7 +488,7 @@
     <span class="spacer"></span>
     <span class="chip">Fill <i id="stFill"></i> <b id="stFillT">—</b></span>
     <span class="chip">Outline <i id="stStroke"></i> <b id="stStrokeT">—</b></span>
-    <span>Page: <b id="stPage">Front</b> · <b>12 × 16 in · RGB</b></span>
+    <span>Page: <b id="stPage">Front</b> · <b id="stSize">12 × 16 in · RGB</b></span>
   </div>
 </div>
 
@@ -591,8 +592,9 @@
         <h4>Start a design</h4>
         <label class="hint" for="homeName">Design name</label>
         <input type="text" id="homeName" placeholder="e.g. Summer drop – Stay Wild">
+        <div id="homePage"></div>
         <button class="btn primary" id="homeNew">New blank design</button>
-        <button class="btn ghost" id="homeSample">Start from the sample</button>
+        <button class="btn ghost" id="homeSample">Start from the sample (12 × 16 in)</button>
         <button class="btn ghost" id="homeOpenFile">Open a .tee.json file…</button>
         <button class="btn ghost resume" id="homeResume">Continue “<span id="homeResumeName"></span>”</button>
       </div>
@@ -626,6 +628,7 @@
 <script src="app/js/bitmap.js"></script>
 <script src="app/js/bgremove.js"></script>
 <script src="app/js/export.js"></script>
+<script src="app/js/pagesize.js"></script>
 <script src="app/js/storage.js"></script>
 <script src="app/js/main.js"></script>
 </body>

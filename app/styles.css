@@ -19,6 +19,8 @@
   .menu > .mi > button:hover,.menu > .mi.open > button{background:var(--panel-2)}
   .dd{display:none;position:absolute;top:24px;left:0;min-width:210px;background:#232428;border:1px solid var(--line-2);border-radius:6px;padding:4px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
   .mi.open .dd{display:block}
+  /* long lists scroll inside the screen, by finger too */
+  .dd,.ctxmenu{max-height:calc(100dvh - 34px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
   .dd button{display:flex;justify-content:space-between;width:100%;padding:6px 10px;border-radius:4px;text-align:left}
   .dd button:hover{background:var(--accent);color:#fff}
   .dd button kbd{font:inherit;color:var(--muted)}
@@ -47,7 +49,9 @@
   .zoomlbl{min-width:52px;text-align:center;color:#d7d9de}
 
   /* property bar */
-  .prop{grid-area:prop;display:flex;align-items:center;gap:6px;padding:0 8px;background:var(--panel-2);border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden}
+  .prop{grid-area:prop;display:flex;align-items:center;gap:6px;padding:0 8px;background:var(--panel-2);border-bottom:1px solid var(--line);white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+  .prop::-webkit-scrollbar{display:none}
+  .prop > *,.pgrp > *{flex:0 0 auto}
   .pgrp{display:none;align-items:center;gap:6px}
   .pgrp.on{display:flex}
   .fld{display:flex;align-items:center;gap:4px;color:var(--muted)}
@@ -219,6 +223,17 @@
   .fmtnote.warn{color:var(--warn)}
   .floatpanel{position:fixed;right:290px;top:110px;width:300px;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:45;display:none}
   .floatpanel.on{display:block}
+  .floatpanel{max-height:calc(100dvh - 118px);overflow-y:auto;overscroll-behavior:contain}
+  .modal > *{max-height:calc(100dvh - 16px);overflow-y:auto}
+  .pagesize{display:flex;flex-direction:column;gap:8px}
+  .pagesize .sel{width:100%}
+  .pagesize .psrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pagesize .psrow input{width:68px}
+  .pagesize .fld{gap:4px}
+  #pageDlg > div{width:min(360px,94vw);background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  #pageDlg h3{margin:0;font-size:14px}
+  #pageDlg .pagesize > label{display:none}
+  #pageDlg .foot{display:flex;justify-content:flex-end;gap:8px}
   .floatpanel h3{margin:0 0 10px;font-size:14px}
   .floatpanel .row label{width:72px}
   .floatpanel .fmtnote{min-height:0;margin:4px 0 0}
@@ -336,7 +351,7 @@
     .menu.open .logo,.menu.open .doc{display:none}
     .menu.open > .mi{display:block;border-bottom:1px solid var(--line);padding:6px 0}
     .menu.open > .mi > button{font-weight:600;color:#fff;padding:6px 4px;width:100%;text-align:left;font-size:14px}
-    .menu.open .dd{display:block;position:static;box-shadow:none;border:0;background:none;padding:0 0 4px 8px;min-width:0}
+    .menu.open .dd,.menu.open #toolsMenu{display:block;position:static;box-shadow:none;border:0;background:none;padding:0 0 4px 8px;min-width:0;max-height:none;overflow:visible}
     .menu.open .dd button{padding:10px 8px;font-size:14px}
     .work{grid-template-columns:1fr;grid-template-rows:1fr}
     .corner,#rulerH,#rulerV{display:none}

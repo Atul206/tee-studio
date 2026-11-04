@@ -23,12 +23,20 @@ EXPORT  (Export button, top right)
           opacity, blend modes and hidden layers kept. Optional: every layer as
           its own PNG, plus a hidden shirt-colour layer for previewing.
           Text arrives as pixel layers (not editable type) at the chosen DPI.
-  PDF     12 × 16 in page at the chosen DPI, for print shops
+  PDF     the page at the chosen DPI, for print shops
   SVG     vector, fonts embedded, opens in Illustrator / Inkscape / CorelDRAW
   JPG     flat on white, for sharing
   Mockup  the design on the chosen shirt colour, 2000 × 2100 px
 
+PAGE SIZE
+  Choose it when you start a design: T-shirt sizes (standard 12 × 16 in, oversized,
+  youth, left chest, sleeve, neck label), paper sizes (A3, A4, A5, Letter, Tabloid)
+  or your own, in inches, cm or mm, portrait or landscape (0.5 to 48 in).
+  Change it later with File > Page size… or the Page size button on the bar when
+  nothing is selected. Artwork stays where it is. Front and back share one size.
+
 PHONES & TABLETS
+  Long menus scroll with a finger, and a tool bar wider than the screen swipes sideways.
   The layout adapts: on tablets the panels slide in from the right (▤ button),
   on phones the tools sit along the bottom (⋯ shows the less common ones), the
   panels open as a sheet from the bottom and the menus are behind ☰.
