@@ -7,6 +7,7 @@ Promise.race([Promise.all(FONTS.map(f => document.fonts.load(`40px "${f}"`))), n
   .finally(async () => {
     fabric.util.clearFabricFontCache();
     await Store.init();
+    AskClaude.init();
     setStatus('Choose or start a design');
     Home.show();
   });

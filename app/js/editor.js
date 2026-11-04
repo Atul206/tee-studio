@@ -47,6 +47,24 @@ function dataURLToBlob(url){
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
   return new Blob([arr], {type: head.match(/data:([^;]+)/)[1]});
 }
+// in-page dialogs: browsers' own confirm() and prompt() do nothing inside Claude's frame
+function askDialog({title, message, input, ok = 'OK', danger}){
+  return new Promise(res => {
+    const m = document.createElement('div'); m.className = 'modal on';
+    const box = document.createElement('div'); box.className = 'askdlg';
+    const h = document.createElement('h3'); h.textContent = title; box.appendChild(h);
+    if (message){ const p = document.createElement('p'); p.textContent = message; box.appendChild(p); }
+    let f = null; if (input != null){ f = document.createElement('input'); f.value = input; box.appendChild(f); }
+    const foot = document.createElement('div'); foot.className = 'foot';
+    const no = document.createElement('button'); no.className = 'btn ghost'; no.textContent = 'Cancel';
+    const yes = document.createElement('button'); yes.className = 'btn primary' + (danger ? ' danger' : ''); yes.textContent = ok;
+    const done = v => { m.remove(); res(v); };
+    no.onclick = () => done(null); yes.onclick = () => done(f ? f.value : true);
+    box.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') done(null); if (e.key === 'Enter') yes.click(); });
+    foot.append(no, yes); box.appendChild(foot); m.appendChild(box); document.body.appendChild(m);
+    (f || yes).focus(); if (f) f.select();
+  });
+}
 function download(url, name){ const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
 function isTyping(e){ const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return true; const a = canvas.getActiveObject(); return !!(a && a.isEditing); }
 function kindOf(o){
@@ -739,9 +757,10 @@ function run(cmd){
   switch (cmd){
     case 'new': case 'home': Home.show(); break;
     case 'pagesize': PageSize.open(); break;
+    case 'askclaude': showDock('ai'); setTimeout(() => { const t = $('aiText'); if (t && !COARSE) t.focus(); }, 60); break;
     case 'open': $('fileOpen').click(); break;
     case 'save': Store.saveNow(true); break;
-    case 'savecopy': download(URL.createObjectURL(new Blob([JSON.stringify(projectData())], {type:'application/json'})), Store.slug() + '.tee.json'); toast('Downloaded a copy of the project file'); break;
+    case 'savecopy': saveFile(new Blob([JSON.stringify(projectData())], {type:'application/json'}), Store.slug() + '.tee.json'); toast('Downloaded a copy of the project file'); break;
     case 'rename': Store.renamePrompt(); break;
     case 'folder': Store.connect(); break;
     case 'import': $('fileImport').click(); break;
@@ -782,7 +801,7 @@ function run(cmd){
     case 'fxbreak': FxTool.breakApart(a); break;
     case 'opacity': case 'fill': showDock('props'); if (!a) toast('Select an object, then adjust it here'); if (cmd === 'opacity') $('oOpacity').focus(); break;
     case 'sample': buildSample(); break;
-    case 'clear': if (confirm('Clear everything on this page?')){ canvas.clear(); refresh(); } break;
+    case 'clear': askDialog({title: 'Clear this page?', message: 'Everything on this page is removed. You can undo it.', ok: 'Clear', danger: true}).then(y => { if (y){ canvas.clear(); snapshot(); refresh(); } }); break;
     case 'help': toast('V pick · R rect · E ellipse · S star · L line · P pen · F freehand · T text · ⌘Z undo · ⌘D duplicate · ⌘G group · Del delete · arrows nudge'); break;
   }
 }

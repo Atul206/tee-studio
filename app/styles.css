@@ -223,6 +223,38 @@
   .fmtnote.warn{color:var(--warn)}
   .floatpanel{position:fixed;right:290px;top:110px;width:300px;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:45;display:none}
   .floatpanel.on{display:block}
+  .askdlg{width:min(380px,94vw);background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .askdlg h3{margin:0;font-size:14px}
+  .askdlg p{margin:0;color:var(--muted)}
+  .askdlg input{height:32px;background:#1f2024;border:1px solid var(--line-2);border-radius:5px;color:var(--text);padding:0 8px;font:inherit}
+  .askdlg .foot{display:flex;justify-content:flex-end;gap:8px}
+  .btn.danger{background:var(--bad);border-color:var(--bad)}
+  [hidden]{display:none!important}
+  @media (hover:none){.pcard .pdel{opacity:1}}
+  /* Ask Claude */
+  .dbody.aiwrap.on{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+  .aihead,.airow{display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .ailog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+  .aihint{color:var(--muted);display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+  .aihint p{margin:0 0 4px}
+  .aichip{height:auto;padding:5px 8px;text-align:left;white-space:normal}
+  .aimsg{padding:7px 10px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45;-webkit-user-select:text;user-select:text}
+  .aimsg.me{background:var(--accent-soft);align-self:flex-end;max-width:90%}
+  .aimsg.claude{background:var(--panel-2);align-self:flex-start;max-width:95%}
+  .aimsg.thinking{color:var(--muted);font-style:italic}
+  .aimsg.error{background:none;border:1px solid var(--bad);color:var(--text)}
+  .aiact{color:var(--muted);font-size:11px}
+  .aibox{display:flex;flex-direction:column;gap:6px}
+  .aibox textarea{width:100%;box-sizing:border-box;background:#1f2024;border:1px solid var(--line-2);border-radius:6px;color:var(--text);padding:7px 8px;font:inherit;font-size:13px;resize:vertical;min-height:58px}
+  .aibox textarea:focus{outline:1px solid var(--accent)}
+  .aipics{display:flex;flex-wrap:wrap;gap:6px}
+  .aipics:empty{display:none}
+  .aipic{width:44px;height:44px;padding:0;border-radius:6px;overflow:hidden;border:1px solid var(--line-2)}
+  .aipic img{width:100%;height:100%;object-fit:cover;display:block}
+  .aiout{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+  .aiout h4{margin:0}
+  .aiout p{margin:0;color:var(--muted)}
+  @media (pointer:coarse){.aibox textarea{font-size:16px}}
   .floatpanel{max-height:calc(100dvh - 118px);overflow-y:auto;overscroll-behavior:contain}
   .modal > *{max-height:calc(100dvh - 16px);overflow-y:auto}
   .pagesize{display:flex;flex-direction:column;gap:8px}

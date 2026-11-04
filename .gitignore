@@ -7,3 +7,4 @@ my-designs/*
 logos/*
 !logos/README.txt
 mcp/node_modules/
+claude/dist/

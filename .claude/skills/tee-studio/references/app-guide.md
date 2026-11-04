@@ -6,6 +6,7 @@ The promise of the app: open `index.html` by double-clicking it and everything w
 
 - **No server, no build, no CDN.** Use classic `<script>` tags only: no ES modules, no `fetch` of local files, since both fail from `file://`. Libraries are vendored in `lib/`, fonts in `fonts/`. The optional `mcp/` folder may use Node and npm because the app never loads it.
 - **Script order matters.** All scripts share one global scope, so a top-level `const` in one file is visible in later files, but a clash breaks the page. See the bottom of `index.html` for the order.
+- **The copy on claude.ai has its own limits.** `confirm()`, `prompt()`, `window.print()` and browser downloads do nothing there: use `askDialog` and `saveFile`. Run `node claude/test.mjs` after touching saving, export or dialogs, and republish with `claude/build.py`.
 - **Tablets and phones count.** `COARSE` means a touch device. Give fingers bigger targets, keep lists scrollable, and let bars swipe. Long-press opens the app's own menu, so the browser's menu stays blocked except in real text fields.
 - **Don't push without being asked.** `main` deploys straight to the public site at https://atul206.github.io/tee-studio/.
 
@@ -22,6 +23,7 @@ The promise of the app: open `index.html` by double-clicking it and everything w
 | `shaping.js`, `textcurves.js` | Weld and Trim with paper.js; text on curves and text outlines |
 | `effects.js`, `effects-ui.js`, `blend.js`, `clip.js` | Live effects, blends, transparency, clip frames, Focus |
 | `bitmap.js`, `bgremove.js` | Pictures: resample, adjust, crop, background removal |
+| `claude.js` | The copy inside Claude: Ask Claude panel, the actions Claude may take, saving to the Claude account, save prompt (see `claude/README.md`) |
 | `export.js`, `storage.js`, `pagesize.js`, `touch.js` | Exports, saving and the home screen, page size dialog, touch |
 
 Scene units: `PX_PER_IN = 20`. The print area is `PA_W × PA_H`. Page size can change, so don't hard-code 12 × 16.

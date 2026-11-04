@@ -28,6 +28,20 @@ EXPORT  (Export button, top right)
   JPG     flat on white, for sharing
   Mockup  the design on the chosen shirt colour, 2000 × 2100 px
 
+ASK CLAUDE (design by chatting, with your own Claude account)
+  Open the copy of Tee Studio that lives on claude.ai and sign in with your Claude
+  account. There is no key or server to set up, and it works on tablets. Then:
+  - Open the Claude tab, or tap Ask Claude, and say what you want: "Make it orange",
+    "Add EST. 2027 under the text", "Design a logo for my cycling club".
+  - Allow Claude when asked, the first time. Each request uses your own Claude plan.
+  - Add picture sends a photo or reference along with your message.
+  - Undo Claude's change reverses the whole of Claude's last reply.
+  - Fast suits small edits and Careful suits designing. Stop ends a request.
+  Your designs save to your Claude account, privately, and follow you to your other
+  devices. Files come through Claude's save prompt, and a PSD arrives inside a .zip.
+  Claude judges pictures by eye here, so a logo traced from a photo is approximate.
+  The offline copy and the public site work as before, without this panel.
+
 PAGE SIZE
   Choose it when you start a design: T-shirt sizes (standard 12 × 16 in, oversized,
   youth, left chest, sleeve, neck label), paper sizes (A3, A4, A5, Letter, Tabloid)

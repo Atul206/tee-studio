@@ -40,6 +40,10 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 | Pictures | Import PNG, JPEG, WebP, GIF, BMP, AVIF at the size their resolution gives; Resample by pixels, percent or dpi (Smooth, Sharp, Hard pixels, Enlarge with detail); Adjust brightness, contrast, saturation, hue, gamma, sharpen, greyscale, invert (non-destructive); Crop and Reset crop; Remove background (colours learnt from the edges or picked, tolerance, softness, specks, clean edges) with a drawn boundary to keep or remove and Invert, all non-destructive; save a picture's pixels as PNG |
 | Export | PNG, JPG, layered PSD (with optional per-layer PNGs and a hidden shirt layer), PDF, SVG (fonts embedded, effects baked), mockup PNG — of the print area, the artwork or the selection, at any size (in, cm, mm or px) and resolution (1–2400 dpi); PNG and JPG files record their dpi |
 
+## Design by chatting with Claude
+
+The copy of Tee Studio hosted on claude.ai has an **Ask Claude** panel. People sign in with their own Claude account, and each request uses their own plan: there's no API key and no server. Claude can only change the open design, and designs save privately to that person's account. See [claude/README.md](claude/README.md).
+
 ## Logos from an image, with an AI agent
 
 [`mcp/`](mcp/README.md) is an MCP server: give Claude or another agent an image file and it builds a vector logo template that appears under Assets > Logos. Optional, local, and no API key needed. The app itself stays free of any install. The `tee-studio` skill in `.claude/skills/` guides Claude Code through creating and editing logos and changing the app. Only make templates of logos you own or have permission to use.

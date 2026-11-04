@@ -25,7 +25,7 @@ const LS = {
 };
 
 const Store = {
-  supported: typeof window.showDirectoryPicker === 'function',
+  supported: !window.TEE_CLAUDE_BUILD && typeof window.showDirectoryPicker === 'function',
   dir: null,            // FileSystemDirectoryHandle of the designs folder
   perm: 'none',         // 'granted' | 'prompt' | 'denied' | 'none'
   name: 'Untitled tee',
@@ -38,7 +38,9 @@ const Store = {
   canWrite(){ return !!this.dir && this.perm === 'granted'; },
   dirName(){ return this.dir ? this.dir.name : ''; },
 
+  place(){ return Cloud.on ? 'your Claude account' : 'this browser'; },
   async init(){
+    await Cloud.init();
     if (!this.supported) return;
     try {
       const h = await IDB.get('dir');
@@ -76,11 +78,13 @@ const Store = {
       }
       return out.sort((a, b) => new Date(b.updated) - new Date(a.updated));
     }
+    if (Cloud.on) return Cloud.list();
     const idx = LS.get('teestudio.projects') || {};
     return Object.entries(idx).map(([file, m]) => Object.assign({file, where: 'browser'}, m)).sort((a, b) => new Date(b.updated) - new Date(a.updated));
   },
   async read(item){
     if (item.where === 'folder'){ const h = await this.dir.getFileHandle(item.file); return JSON.parse(await (await h.getFile()).text()); }
+    if (item.where === 'cloud') return Cloud.read(item.file);
     return LS.get('teestudio.p.' + item.file);
   },
   async uniqueFile(base){
@@ -122,9 +126,9 @@ const Store = {
   /* ----- saving ----- */
   changed(){
     if (this.quiet || !this.open) return;
-    LS.set('teestudio.backup', Object.assign(projectData(), {_file: this.fileName, _where: this.canWrite() ? 'folder' : 'browser'}));   // crash/close safety net
+    LS.set('teestudio.backup', Object.assign(projectData(), {_file: this.fileName, _where: this.canWrite() ? 'folder' : Cloud.on ? 'cloud' : 'browser'}));   // crash/close safety net
     this.pending = true; setStatus('Saving…');
-    clearTimeout(this.saveTimer); this.saveTimer = setTimeout(() => this.saveNow(), 900);
+    clearTimeout(this.saveTimer); this.saveTimer = setTimeout(() => this.saveNow(), Cloud.on ? 2500 : 900);
   },
   thumb(){
     try { return canvas.toDataURL(Object.assign({format: 'png'}, cropArgs(12))); } catch(e){ return null; }
@@ -139,15 +143,17 @@ const Store = {
         if (this.canWrite()){
           const h = await this.dir.getFileHandle(this.fileName, {create: true});
           const w = await h.createWritable(); await w.write(JSON.stringify(data)); await w.close();
+        } else if (Cloud.on){
+          await Cloud.save(this.fileName, data);
         } else {
           const idx = LS.get('teestudio.projects') || {};
           const ok = LS.set('teestudio.p.' + this.fileName, data);
           idx[this.fileName] = {name: data.name, updated: data.updated, thumb: data.thumb}; LS.set('teestudio.projects', idx);
           if (!ok) throw new Error('browser storage is full — connect a designs folder or download a copy');
         }
-        LS.set('teestudio.last', {file: this.fileName, where: this.canWrite() ? 'folder' : 'browser'});
+        LS.set('teestudio.last', {file: this.fileName, where: this.canWrite() ? 'folder' : Cloud.on ? 'cloud' : 'browser'});
         this.pending = false; setStatus();
-        if (explicit) toast(this.canWrite() ? `Saved to ${this.dirName()}/${this.fileName}` : 'Saved in this browser');
+        if (explicit) toast(this.canWrite() ? `Saved to ${this.dirName()}/${this.fileName}` : `Saved in ${this.place()}`);
       } catch(e){
         console.error(e); this.pending = true;
         if (this.dir && e.name === 'NotAllowedError'){ this.perm = 'prompt'; }
@@ -164,14 +170,16 @@ const Store = {
     try {
       if (old && old !== this.fileName){
         if (this.canWrite()) await this.dir.removeEntry(old);
+        else if (Cloud.on) await Cloud.remove(old);
         else { const idx = LS.get('teestudio.projects') || {}; delete idx[old]; LS.set('teestudio.projects', idx); LS.del('teestudio.p.' + old); }
       }
     } catch(e){}
     setStatus(); toast(`Renamed to “${newName}”`);
   },
-  renamePrompt(){ const n = prompt('Design name', this.name); if (n) this.rename(n); },
+  async renamePrompt(){ const n = await askDialog({title: 'Design name', input: this.name, ok: 'Rename'}); if (n) this.rename(n); },
   async remove(item){
     if (item.where === 'folder') await this.dir.removeEntry(item.file);
+    else if (item.where === 'cloud') await Cloud.remove(item.file);
     else { const idx = LS.get('teestudio.projects') || {}; delete idx[item.file]; LS.set('teestudio.projects', idx); LS.del('teestudio.p.' + item.file); }
   },
 
@@ -189,8 +197,8 @@ const Store = {
       if (!silent) toast('Saved ' + where);
       return where;
     }
-    const url = URL.createObjectURL(blob); download(url, file); setTimeout(() => URL.revokeObjectURL(url), 30000);
-    if (!silent) toast('Downloaded ' + file);
+    const sent = await saveFile(blob, file);
+    if (sent && !silent) toast('Saved ' + file);
     return file;
   },
 };
@@ -198,7 +206,7 @@ const Store = {
 /* ---------- status in the menu bar ---------- */
 function setStatus(msg){
   const el = $('docname'); if (!el) return;
-  const where = Store.canWrite() ? `${Store.dirName()}/${Store.fileName || Store.slug() + '.tee.json'}` : Store.dir ? 'folder needs permission — kept in browser' : 'kept in this browser';
+  const where = Store.canWrite() ? `${Store.dirName()}/${Store.fileName || Store.slug() + '.tee.json'}` : Store.dir ? 'folder needs permission — kept in browser' : `kept in ${Store.place()}`;
   el.innerHTML = '';
   const n = document.createElement('b'); n.textContent = Store.name; n.title = 'Click to rename'; n.onclick = () => Store.renamePrompt();
   const s = document.createElement('span'); s.className = 'savestate' + (msg && msg.startsWith('Not saved') ? ' bad' : '');
@@ -217,7 +225,9 @@ const Home = {
   hide(){ $('home').classList.remove('on'); },
   async render(){
     const f = $('homeFolder');
-    if (!Store.supported){
+    if (window.TEE_CLAUDE_BUILD){
+      f.innerHTML = Cloud.on ? '<div class="hf ok"><b>Signed in with your Claude account.</b> Your designs save there automatically and follow you to your other devices. Only you can see them.</div>' : '<div class="hf warn"><b>Sign in to Claude</b> to save designs to your account. For now they are kept in this browser.</div>';
+    } else if (!Store.supported){
       f.innerHTML = `<div class="hf warn"><b>This browser can’t save into a folder.</b> Open this file in <b>Chrome</b> or <b>Edge</b> to save projects and exports next to the app. Here, projects are kept inside this browser and exports download.</div>`;
     } else if (Store.canWrite()){
       f.innerHTML = `<div class="hf ok"><b>Designs folder:</b> <code></code> <span>Projects save here automatically · exports go to <code>exports/</code></span> <button class="btn ghost mini" id="hfChange">Change folder</button></div>`;
@@ -238,7 +248,7 @@ const Home = {
     const grid = $('homeList'); grid.innerHTML = '<div class="empty">Loading…</div>';
     let items = [];
     try { items = await Store.list(); } catch(e){ grid.innerHTML = `<div class="empty">Could not read the folder: ${e.message}</div>`; return; }
-    $('homeCount').textContent = items.length ? `${items.length} design${items.length > 1 ? 's' : ''} · ${Store.canWrite() ? 'in ' + Store.dirName() : 'in this browser'}` : '';
+    $('homeCount').textContent = items.length ? `${items.length} design${items.length > 1 ? 's' : ''} · ${Store.canWrite() ? 'in ' + Store.dirName() : 'in ' + Store.place()}` : '';
     grid.innerHTML = items.length ? '' : `<div class="empty">No saved designs yet — start a new one.</div>`;
     items.forEach(it => {
       const c = document.createElement('div'); c.className = 'pcard' + (it.file === Store.fileName && Store.open ? ' cur' : '');
@@ -248,7 +258,7 @@ const Home = {
       c.querySelector('small').textContent = it.broken ? 'Unreadable file' : new Date(it.updated).toLocaleString([], {dateStyle: 'medium', timeStyle: 'short'});
       c.onclick = e => { if (!e.target.closest('.pdel')) Store.openItem(it); };
       c.querySelector('.pdel').onclick = async () => {
-        if (!confirm(`Delete “${it.name}”${it.where === 'folder' ? ' from ' + Store.dirName() : ''}? Exports are kept.`)) return;
+        if (!await askDialog({title: `Delete “${it.name}”?`, message: `It is removed from ${it.where === 'folder' ? Store.dirName() : Store.place()}. Exported files are kept.`, ok: 'Delete', danger: true})) return;
         try { await Store.remove(it); if (it.file === Store.fileName){ Store.fileName = null; } this.render(); } catch(e){ toast('Delete failed: ' + e.message); }
       };
       grid.appendChild(c);
@@ -260,7 +270,7 @@ $('homeSample').onclick = () => Store.newProject($('homeName').value || 'Stay Wi
 $('homeOpenFile').onclick = () => $('fileOpen').click();
 $('homeResume').onclick = () => {
   const b = LS.get('teestudio.backup'); if (!b) return;
-  const same = b._file && b._where === (Store.canWrite() ? 'folder' : 'browser');
+  const same = b._file && b._where === (Store.canWrite() ? 'folder' : Cloud.on ? 'cloud' : 'browser');
   Store.openData(b, same ? b._file : (b.name || 'Untitled tee') + '.tee.json', same ? b._where : undefined, true);
 };
 $('homeClose').onclick = () => Home.hide();
