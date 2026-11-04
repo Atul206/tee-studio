@@ -20,6 +20,7 @@ CDN = {
 html = (ROOT / 'index.html').read_text()
 head = re.search(r'<head>(.*?)</head>', html, re.S).group(1)
 body = re.search(r'<body>(.*)</body>', html, re.S).group(1)
+body = re.sub(r'\?v=\w+"', '"', body)   # the published files are versioned by their host
 scripts = re.findall(r'<script src="([^"]+)"></script>', head)
 assert set(CDN) <= set(scripts), 'a library in index.html has no CDN entry'
 tags = ''.join(f'<script src="{CDN.get(s, s)}"></script>\n' for s in scripts)

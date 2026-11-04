@@ -13,7 +13,7 @@ const inClaude = () => !!window.TEE_CLAUDE_BUILD && !!window.claude && typeof wi
 /* ---------- designs in the person's private storage on claude.ai ---------- */
 const Cloud = {
   col: null, on: false, sent: new Map(),
-  PART: 240000,   // a document holds 256 KiB; designs are ASCII here, so this many characters fit with room to spare
+  PART: 230000,   // a document holds 256 KiB once stored, where every quote and backslash takes two characters
   async init(){
     if (!inClaude()) return;
     try {
@@ -39,7 +39,11 @@ const Cloud = {
   },
   async save(file, data){
     const json = JSON.stringify(data).replace(/[\u0080-￿]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
-    const chunks = []; for (let i = 0; i < json.length; i += this.PART) chunks.push(json.slice(i, i + this.PART));
+    const chunks = [];
+    for (let i = 0, from = 0, size = 0; i <= json.length; i++){
+      if (i === json.length || size >= this.PART){ if (i > from) chunks.push(json.slice(from, i)); from = i; size = 0; }
+      if (i < json.length){ const c = json.charCodeAt(i); size += c === 34 || c === 92 ? 2 : 1; }
+    }
     const before = this.sent.get(file) || [];
     // only what changed is written; one at a time, parts before the record that points at them
     for (let i = 0; i < chunks.length; i++) if (before[i] !== chunks[i]) await this.part(file, i).set({kind: 'part', data: chunks[i]});
@@ -265,10 +269,17 @@ const AskClaude = {
       const a = body.querySelector('a'); a.href = TEE_CLAUDE_LINK; a.textContent = 'Open in Claude';
       return;
     }
-    this.sample = await claude.use('sample');
-    if (!this.sample){ body.innerHTML = '<div class="aiout"><h4>Ask Claude</h4><p>Sign in to Claude and open this page there to design by chatting.</p></div>'; return; }
-    this.limits = await this.sample.limits().catch(() => null);
-    this.build();
+    const note = (title, words) => { body.innerHTML = '<div class="aiout"><h4></h4><p></p></div>'; body.querySelector('h4').textContent = title; body.querySelector('p').textContent = words; };
+    // this can take seconds: the tab is never left blank
+    note('Ask Claude', 'Connecting to Claude…');
+    try {
+      this.sample = await claude.use('sample');
+      if (!this.sample) return note('Ask Claude', 'Claude is not available in this view. Open this page on claude.ai, signed in to your account.');
+      this.limits = await this.sample.limits().catch(() => null);
+      body.innerHTML = ''; this.build();
+    } catch (e){
+      console.error(e); note('Ask Claude', 'Claude could not be reached. Reload this page to try again.');
+    }
   },
   build(){
     const body = $('d-ai'); body.classList.add('aiwrap');
@@ -376,3 +387,5 @@ const AskClaude = {
     }
   },
 };
+// starts itself, so it can't depend on another script being up to date
+AskClaude.init().catch(e => console.error(e));

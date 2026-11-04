@@ -10,6 +10,7 @@ import {createRequire} from 'node:module';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const puppeteer = createRequire(path.join(ROOT, 'mcp/package.json'))('puppeteer-core');
 const OUT = process.env.OUT || fs.mkdtempSync('/tmp/teeclaude-');
+execFileSync('python3', [path.join(ROOT, 'tools/stamp.py'), '--check']);
 execFileSync('python3', [path.join(ROOT, 'claude/build.py')]);
 // the page as Claude's publish step wraps it
 const harness = path.join(ROOT, '_claude_test.html');
@@ -66,6 +67,10 @@ const fake = () => {
   window.claude = {use: async n => ({sample, db, downloads, user: {id: async () => 'viewer1'}})[n] || null};
 };
 
+// a slow connection to Claude, and old cached scripts, must never leave the tab blank
+const slow = () => { window.claude = {use: n => n === 'sample' ? new Promise(() => {}) : Promise.resolve(null)}; };
+const none = () => { window.claude = {use: async () => null}; };
+const broken = () => { window.claude = {use: async n => { if (n === 'sample') throw new Error('boom'); return null; }}; };
 const say = (n, v) => console.log(`ok  ${n}${v === undefined ? '' : ': ' + JSON.stringify(v)}`);
 const browser = await puppeteer.launch({executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--no-first-run', '--allow-file-access-from-files']});
 try {
@@ -187,6 +192,16 @@ try {
   r = await ask('big', {text: 'Fine.', rounds: [[{op: 'add_text', text: 'x'}]]}); assert.ok(r.lastCall.bytes < 262144, String(r.lastCall.bytes)); assert.ok(r.lastCall.turns <= 21); say('large design stays within the limits', {promptBytes: r.lastCall.bytes, turns: r.lastCall.turns});
   await page.evaluate(() => { restoring = true; canvas.getObjects().filter(o => /^Dot /.test(o.name || '')).forEach(o => canvas.remove(o)); restoring = false; canvas.renderAll(); snapshot(); });
 
+  // a design full of objects: quotes take double once stored, so pieces are measured at their stored size
+  const dense = await page.evaluate(async () => {
+    restoring = true; const added = []; for (let i = 0; i < 1500; i++){ const o = new fabric.Rect({left: i % 200, top: i % 300, width: 5, height: 5, fill: '#fff', name: 'Square ' + i}); canvas.add(o); added.push(o); } restoring = false;
+    __fake.largest = 0; await Store.saveNow(true); await Store.writing;
+    const out = {size: JSON.stringify(projectData()).length, largest: __fake.largest, status: $('docname').textContent};
+    restoring = true; added.forEach(o => canvas.remove(o)); restoring = false; canvas.renderAll(); snapshot(); await Store.saveNow(true); await Store.writing;
+    return out;
+  });
+  assert.ok(dense.size > 262144, String(dense.size)); assert.ok(dense.largest <= 262144, JSON.stringify(dense)); assert.ok(!dense.status.includes('Not saved'), dense.status); say('a design full of objects saves in pieces within the limit', dense);
+
   // a design over the 256 KB document limit is split, and comes back whole on another device
   const big = await page.evaluate(async () => {
     const c = document.createElement('canvas'); c.width = c.height = 900; const x = c.getContext('2d'), img = x.createImageData(900, 900);
@@ -231,7 +246,8 @@ try {
   await page.setViewport({width: 820, height: 1180, hasTouch: true, isMobile: true});
   await open();
   await page.evaluate(() => { $('homeNew').click(); }); await page.waitForFunction(() => Store.open);
-  await page.evaluate(() => run('askclaude')); await new Promise(res => setTimeout(res, 300));
+  await page.evaluate(() => run('askclaude'));
+  await page.waitForFunction(() => { const d = document.querySelector('.dock').getBoundingClientRect(); return d.left < innerWidth && d.right <= innerWidth + 1; }, {timeout: 3000});   // the drawer slides in
   const box = await page.evaluate(() => { const d = document.querySelector('.dock').getBoundingClientRect(), t = $('aiText').getBoundingClientRect(); return {dockVisible: d.left < innerWidth && d.right <= innerWidth + 1, textIn: t.bottom <= innerHeight && t.top > 0, sendable: !$('aiSend').disabled, font: getComputedStyle($('aiText')).fontSize, scrollsSideways: document.documentElement.scrollWidth > innerWidth}; });
   assert.ok(box.dockVisible && box.textIn && !box.scrollsSideways, JSON.stringify(box)); say('Ask Claude opens as a side drawer on a tablet', box);
   await page.screenshot({path: path.join(OUT, 'panel-tablet.png')});
@@ -243,6 +259,16 @@ try {
   await plain.waitForSelector('#d-ai a');
   const p = await plain.evaluate(() => ({chat: !!$('aiText'), link: document.querySelector('#d-ai a').href, picker: Store.supported, cloud: Cloud.on}));
   assert.equal(p.chat, false); assert.ok(p.link.startsWith('https://claude.ai/')); assert.equal(p.cloud, false); assert.equal(plainErrors.length, 0, plainErrors.join()); say('the offline copy has no chat, only a link to the copy in Claude', p);
+
+  for (const [state, words] of [[slow, 'Connecting'], [none, 'not available'], [broken, 'could not be reached']]){
+    const q = await browser.newPage(); await q.evaluateOnNewDocument(state);
+    await q.goto(pathToFileURL(harness).href, {waitUntil: 'load'});
+    await q.waitForFunction(w => document.getElementById('d-ai').textContent.includes(w), {timeout: 5000}, words);
+    await q.close();
+  }
+  say('the tab is never blank while connecting, or when Claude is unavailable');
+  assert.ok(!fs.readFileSync(path.join(ROOT, 'app/js/main.js'), 'utf8').includes('AskClaude'));
+  assert.ok(/app\/js\/claude\.js\?v=\w+"/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'))); say('scripts are versioned, and the panel starts itself');
 
   assert.deepEqual(errors, []); say('no page errors');
   console.log('all passed; pictures in', OUT);

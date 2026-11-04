@@ -8,6 +8,7 @@ The promise of the app: open `index.html` by double-clicking it and everything w
 - **Script order matters.** All scripts share one global scope, so a top-level `const` in one file is visible in later files, but a clash breaks the page. See the bottom of `index.html` for the order.
 - **The copy on claude.ai has its own limits.** `confirm()`, `prompt()`, `window.print()` and browser downloads do nothing there: use `askDialog` and `saveFile`. Run `node claude/test.mjs` after touching saving, export or dialogs, and republish with `claude/build.py`.
 - **Tablets and phones count.** `COARSE` means a touch device. Give fingers bigger targets, keep lists scrollable, and let bars swipe. Long-press opens the app's own menu, so the browser's menu stays blocked except in real text fields.
+- **Before committing app changes, run `python3 tools/stamp.py`.** It versions script links, so browsers can't mix an updated page with old cached scripts.
 - **Don't push without being asked.** `main` deploys straight to the public site at https://atul206.github.io/tee-studio/.
 
 ## Where things are
