@@ -40,6 +40,10 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 | Pictures | Import PNG, JPEG, WebP, GIF, BMP, AVIF at the size their resolution gives; Resample by pixels, percent or dpi (Smooth, Sharp, Hard pixels, Enlarge with detail); Adjust brightness, contrast, saturation, hue, gamma, sharpen, greyscale, invert (non-destructive); Crop and Reset crop; Remove background (colours learnt from the edges or picked, tolerance, softness, specks, clean edges) with a drawn boundary to keep or remove and Invert, all non-destructive; save a picture's pixels as PNG |
 | Export | PNG, JPG, layered PSD (with optional per-layer PNGs and a hidden shirt layer), PDF, SVG (fonts embedded, effects baked), mockup PNG — of the print area, the artwork or the selection, at any size (in, cm, mm or px) and resolution (1–2400 dpi); PNG and JPG files record their dpi |
 
+## Logos from an image, with an AI agent
+
+[`mcp/`](mcp/README.md) is an MCP server: give Claude or another agent an image file and it builds a vector logo template that appears under Assets > Logos. Optional, local, and no API key needed. The app itself stays free of any install. The `tee-studio` skill in `.claude/skills/` guides Claude Code through creating and editing logos and changing the app. Only make templates of logos you own or have permission to use.
+
 ## How it's built
 
 Plain HTML, CSS and classic scripts — no build step, no modules, no `fetch`, so it works from `file://`. Libraries and fonts are bundled in `lib/` and `fonts/`.
@@ -51,6 +55,8 @@ app/js/           editor, tools, tables, dimensions, storage, export, bitmaps, b
 lib/              Fabric.js, ag-psd, jsPDF, paper.js, opentype.js, Clipper
 fonts/            embedded Google Fonts (display + outlines)
 my-designs/       your designs folder (contents are git-ignored)
+logos/            logo templates made with the MCP server (git-ignored)
+mcp/              the logo MCP server (optional, needs Node)
 ```
 
 See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled libraries' and fonts' licences.

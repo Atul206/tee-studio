@@ -2,3 +2,8 @@
 my-designs/*
 !my-designs/README.txt
 .DS_Store
+
+# logos made with the MCP server stay on this machine unless you choose to publish them
+logos/*
+!logos/README.txt
+mcp/node_modules/

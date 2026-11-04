@@ -20,3 +20,7 @@ Anton, Bebas Neue, Bungee, Caveat, Inter, Lobster, Montserrat, Oswald, Pacifico,
 ## Behaviour reference
 
 Tool behaviour (formulas, defaults and interaction rules) follows the documentation of [TraceDraw](https://github.com/igtoth/tracedraw) (MIT or Apache-2.0). No TraceDraw source code is included; Tee Studio is a separate JavaScript implementation.
+
+## Logo MCP server (`mcp/`, optional, not part of the app)
+
+Installed by npm, not bundled: `@modelcontextprotocol/sdk` (MIT), `zod` (MIT), `puppeteer-core` (Apache-2.0), `imagetracerjs` (Unlicense).

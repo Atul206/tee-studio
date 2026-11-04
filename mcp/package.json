@@ -1,0 +1,23 @@
+{
+  "name": "tee-studio-logo-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server: turn an image file into a Tee Studio logo template",
+  "type": "module",
+  "bin": {
+    "tee-studio-logo-mcp": "server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "imagetracerjs": "^1.2.6",
+    "puppeteer-core": "^25.16.0",
+    "zod": "^4.6.7"
+  }
+}

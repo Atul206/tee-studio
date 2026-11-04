@@ -207,7 +207,7 @@ async function exportPSD(p, dpi, opts = {}){
     for (const o of canvas.getObjects().filter(o => !o.excludeFromExport && (!only || only.includes(o)))){
       if (o.type === 'group'){
         children.push({name: nameOf(o), opened: true, hidden: !o.visible, opacity: o.opacity ?? 1, blendMode: BLEND_PSD[o.globalCompositeOperation] || 'normal',
-                       children: o.getObjects().map(c => psdLayer(c, o, F, layerPngs))});
+                       children: o.getObjects().filter(c => c.name !== 'Logo box').map(c => psdLayer(c, o, F, layerPngs))});
       } else children.push(psdLayer(o, null, F, layerPngs));
       await new Promise(r => setTimeout(r));   // keep the page responsive between layers
     }
