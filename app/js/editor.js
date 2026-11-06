@@ -561,22 +561,32 @@ onEnter('oRadius', () => { const a = canvas.getActiveObject(); if (a && a.type =
 /* palette */
 const pal = $('pal');
 PALETTE.forEach(c => { const s = document.createElement('span'); s.style.background = c; s.title = c + ' — left: fill · right: outline'; s.dataset.c = c; pal.appendChild(s); });
+let palOutline = false;
+function setPalMode(outline){
+  palOutline = outline;
+  $('palMode').querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.m === 'outline') === outline));
+  $('palNone').title = outline ? 'No outline' : 'No fill';
+  document.querySelector('.swatchpair').classList.toggle('outline', outline);
+}
 function paletteApply(c, outline){
-  const objs = actives();
+  const objs = actives(), what = outline ? 'outline' : 'fill', name = c ? c.toUpperCase() : 'none';
   if (!objs.length){
     if (outline) defStroke = c; else defFill = c;
-    toast(`Default ${outline ? 'outline' : 'fill'} for new objects: ${c ? c.toUpperCase() : 'none'}`); syncBars(); return;
+    toast(`Nothing is selected, so new shapes will use this ${what}: ${name}. Select an object to recolour it.`); syncBars(); return;
   }
   eachLeaf(o => {
     if (outline){ if (c){ o.set({stroke: c, strokeUniform:true}); if (!o.strokeWidth) o.set('strokeWidth', DEF_STROKE); } else o.set({strokeWidth: 0, stroke: null}); }
     else o.set('fill', c || '');
   });
   syncProps();
+  toast(`${outline ? 'Outline' : 'Fill'} changed to ${name}`);
 }
-pal.addEventListener('click', e => { const c = e.target.dataset.c; if (c) paletteApply(c, false); });
+pal.addEventListener('click', e => { const c = e.target.dataset.c; if (c) paletteApply(c, palOutline); });
 pal.addEventListener('contextmenu', e => { const c = e.target.dataset.c; if (c){ e.preventDefault(); paletteApply(c, true); } });
-$('palNone').onclick = () => paletteApply(null, false);
+$('palNone').onclick = () => paletteApply(null, palOutline);
 $('palNone').oncontextmenu = e => { e.preventDefault(); paletteApply(null, true); };
+$('palMode').querySelectorAll('button').forEach(b => b.onclick = () => setPalMode(b.dataset.m === 'outline'));
+document.querySelector('.swatchpair').onclick = () => setPalMode(!palOutline);
 
 /* ===================== layers docker ===================== */
 let dragIdx = null;
@@ -802,6 +812,7 @@ function run(cmd){
     case 'opacity': case 'fill': showDock('props'); if (!a) toast('Select an object, then adjust it here'); if (cmd === 'opacity') $('oOpacity').focus(); break;
     case 'sample': buildSample(); break;
     case 'clear': askDialog({title: 'Clear this page?', message: 'Everything on this page is removed. You can undo it.', ok: 'Clear', danger: true}).then(y => { if (y){ canvas.clear(); snapshot(); refresh(); } }); break;
+    case 'helpask': Help.open(); break;
     case 'help': toast('V pick · R rect · E ellipse · S star · L line · P pen · F freehand · T text · ⌘Z undo · ⌘D duplicate · ⌘G group · Del delete · arrows nudge'); break;
   }
 }

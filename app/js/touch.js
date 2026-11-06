@@ -1,7 +1,7 @@
 /* ===================== tablets, phones and touch =====================
    The layout itself is CSS (styles.css: tablet ≤ 1099 px, phone ≤ 767 px). Here: the ☰ menu and the panels
-   drawer/sheet, two-finger pinch-zoom and pan, long-press for the right-click menus, double-tap for
-   double-click, and long-press on a palette swatch for the outline colour. */
+   drawer/sheet, two-finger pinch-zoom and pan, and double-tap for the right-click menus. Nothing here depends on
+   holding a finger down. */
 
 /* ---------- the browser's own long-press menu (copy, cut, select all…) never opens over the app ---------- */
 (function(){
@@ -50,7 +50,6 @@ window.addEventListener('resize', () => { if (!Touch.small()){ Touch.openDock(fa
     canvas._groupSelector = null; canvas.clearContext(canvas.contextTop);
     const m = mid(e.touches), r = canvas.upperCanvasEl.getBoundingClientRect();
     pinch = {d: dist(e.touches), z: zoom, p: toScene(m), r};
-    clearTimeout(lp && lp.t); lp = null;
     if (Tools.active()) Tools.cancelGesture();
   }, {capture: true, passive: false});
   stage.addEventListener('touchmove', e => {
@@ -71,52 +70,47 @@ window.addEventListener('resize', () => { if (!Touch.small()){ Touch.openDock(fa
   }, {capture: true}));
 })();
 
-/* ---------- long-press = right-click; double-tap = double-click ---------- */
-let lp = null;
+/* ---------- double-tap = right-click with the Pick and Shape tools; other tools use it to finish what they draw ---------- */
 (function(){
   const el = canvas.upperCanvasEl;
-  const fire = () => {
-    const at = lp; lp = null; if (!at) return;
-    const tr = canvas._currentTransform;
-    if (tr){ Pick.restore(tr.target, tr.original); canvas._currentTransform = null; canvas.requestRenderAll(); }
-    canvas._groupSelector = null;
+  let lastTap = null, before = null;
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    const a = canvas.getActiveObject();
+    before = {rotate: !!(a && a.rotateMode), editing: !!(a && a.isEditing), at: Date.now()};
+  }, {passive: true, capture: true});
+  // browsers follow a tap with pretend mouse events: they would close a menu just opened, or press whatever
+  // appeared under the finger. The canvas handles touch itself, so it doesn't need them.
+  el.addEventListener('touchend', e => { if (e.cancelable) e.preventDefault(); }, {passive: false});
+  const openMenu = (x, y) => {
+    const opt = {bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 2, buttons: 2};
+    // the canvas library ignores mouse events for a moment after a touch, so the Shape tool is called directly
+    if (tool === 'shape') return Nodes.down({e: new MouseEvent('mousedown', opt), button: 3});
     Touch.suppressClick = true;
-    if (navigator.vibrate) navigator.vibrate(12);
-    const opt = {bubbles: true, cancelable: true, view: window, clientX: at.x, clientY: at.y, button: 2, buttons: 2};
     el.dispatchEvent(new MouseEvent('mousedown', opt));
     document.dispatchEvent(new MouseEvent('mouseup', Object.assign({}, opt, {buttons: 0})));
+    Touch.suppressClick = false;
   };
-  el.addEventListener('touchstart', e => {
-    clearTimeout(lp && lp.t); lp = null;
-    if (e.touches.length !== 1 || Tools.active()) return;
-    const t = e.touches[0]; lp = {x: t.clientX, y: t.clientY, t: setTimeout(fire, 550)};
-  }, {passive: true});
-  el.addEventListener('touchmove', e => { if (lp && Math.hypot(e.touches[0].clientX - lp.x, e.touches[0].clientY - lp.y) > 10){ clearTimeout(lp.t); lp = null; } }, {passive: true});
-  el.addEventListener('touchend', () => { if (lp){ clearTimeout(lp.t); lp = null; } }, {passive: true});
-  let lastTap = null;
   canvas.on('mouse:up', o => {
-    if (!o.e || !o.e.type || !o.e.type.startsWith('touch')) return;
-    if (Touch.suppressClick){ Touch.suppressClick = false; lastTap = null; return; }
-    const p = fabric.util.getPointer(o.e), now = Date.now();
-    if (lastTap && now - lastTap.t < 320 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 24){
-      lastTap = null;
-      canvas.fire('mouse:dblclick', {e: o.e, target: o.target, pointer: canvas.getPointer(o.e)});
-      if (o.target && o.target.fire) o.target.fire('mousedblclick', {e: o.e});
-    } else lastTap = {t: now, x: p.x, y: p.y};
+    if (!o.e || !o.e.type || !o.e.type.startsWith('touch') || !o.isClick) { if (o.e && o.e.type && o.e.type.startsWith('touch')) lastTap = null; return; }
+    const p = fabric.util.getPointer(o.e), now = Date.now(), first = lastTap;
+    if (before && now - before.at > 300){ lastTap = null; return; }   // a hold isn't a tap
+    const twice = first && now - first.t < 350 && Math.hypot(p.x - first.x, p.y - first.y) < 28;
+    if (!twice){ lastTap = {t: now, x: p.x, y: p.y, rotate: before && before.rotate, editing: before && before.editing}; return; }
+    lastTap = null;
+    if (tool === 'pick' || tool === 'shape'){
+      const a = canvas.getActiveObject();
+      if (first.editing) return;   // already typing: a double-tap there selects a word, as usual
+      // the second tap also counted as a tap on the selection: undo what it started
+      if (a && a.isEditing) a.exitEditing();
+      if (a && a.rotateMode && !first.rotate && typeof Pick !== 'undefined') Pick.setMode(a, false);
+      const c = canvas.upperCanvasEl.getBoundingClientRect(), x = c.left + canvas.getPointer(o.e, true).x, y = c.top + canvas.getPointer(o.e, true).y;
+      setTimeout(() => openMenu(x, y), 0);
+      return;
+    }
+    canvas.fire('mouse:dblclick', {e: o.e, target: o.target, pointer: canvas.getPointer(o.e)});
+    if (o.target && o.target.fire) o.target.fire('mousedblclick', {e: o.e});
   });
-})();
-
-/* ---------- palette: tap = fill, hold = outline ---------- */
-(function(){
-  const pal = $('pal'); let hold = null, held = false;
-  pal.addEventListener('touchstart', e => {
-    const sw = e.target.closest('[data-c], #palNone'); if (!sw) return;
-    held = false;
-    hold = setTimeout(() => { held = true; paletteApply(sw.id === 'palNone' ? null : sw.dataset.c, true); if (navigator.vibrate) navigator.vibrate(12); }, 450);
-  }, {passive: true});
-  ['touchend', 'touchmove', 'touchcancel'].forEach(t => pal.addEventListener(t, () => clearTimeout(hold), {passive: true}));
-  pal.addEventListener('click', e => { if (held){ e.stopImmediatePropagation(); e.preventDefault(); held = false; } }, true);
-  if (matchMedia('(pointer: coarse)').matches){ const l = pal.querySelector('.lbl'); if (l) l.textContent = 'Tap = fill · hold = outline'; }
 })();
 
 /* ---------- phone toolbar: ⋯ shows the less common tools ---------- */

@@ -613,5 +613,5 @@ const Nodes = {
 
 canvas.on('after:render', e => { if (e && e.ctx === canvas.contextContainer && tool === 'shape') Nodes.draw(e.ctx); });
 // a press elsewhere closes the node menu (but not the press that just opened it)
-document.addEventListener('mousedown', e => { if (Nodes.menu && e !== Nodes.menuEvent && !e.target.closest('.ctxmenu')) Nodes.closeMenu(); });
+['pointerdown', 'mousedown'].forEach(t => document.addEventListener(t, e => { if (Nodes.menu && e !== Nodes.menuEvent && !(e.target.closest && e.target.closest('.ctxmenu'))) Nodes.closeMenu(); }, true));
 document.querySelectorAll('#pbNodes [data-node]').forEach(b => b.onclick = () => Nodes.run(b.dataset.node));

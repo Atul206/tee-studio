@@ -42,6 +42,19 @@ ASK CLAUDE (design by chatting, with your own Claude account)
   Claude judges pictures by eye here, so a logo traced from a photo is approximate.
   The offline copy and the public site work as before, without this panel.
 
+COLOURS (the strip along the bottom)
+  Select an object and tap a colour to change it. Fill / Outline at the start of
+  the strip chooses which part changes, and the crossed-out square removes it.
+  With nothing selected, a colour sets what new shapes will use. On a computer,
+  right-clicking a colour also sets the outline. The two small squares at the
+  bottom of the toolbox show the current fill and outline: tap to switch.
+
+HELP (Help button, the Help tab, or F1)
+  Ask how to do something, such as "how do I blend" or "blend kaise kare". It works
+  offline and answers from this app's own guides. "Show me step by step" points at
+  the real buttons and can add practice shapes and do each step for you. Undo
+  removes anything it made. It isn't an AI, so if no guide fits it says so.
+
 PAGE SIZE
   Choose it when you start a design: T-shirt sizes (standard 12 × 16 in, oversized,
   youth, left chest, sleeve, neck label), paper sizes (A3, A4, A5, Letter, Tabloid)
@@ -56,18 +69,19 @@ PHONES & TABLETS
   panels open as a sheet from the bottom and the menus are behind ☰.
   Pinch with two fingers    zoom (the point between your fingers stays put)
   Drag with two fingers     move around the page
-  Long-press                the app's own right-click menu (objects, nodes in
-                            the Shape tool); the browser's copy/cut menu stays away
-  Long-press a toolbox tool shows the other tools in its flyout (so does tapping
-                            the tool you are already on)
-  Double-tap                double-click (Focus mode on a group, Shape tool...)
-  Palette                   tap = fill · press and hold = outline
+  Double-tap                opens the menu, like right-click on a computer
+                            (objects, and nodes in the Shape tool). Tap outside to
+                            close it. It also has Edit text and Edit points. While
+                            drawing with other tools, it finishes the curve
+  Corner arrow on a tool    tap the arrow, or tap the tool you're already on, for
+                            the other tools in its group
+  Nothing needs holding a finger down
   Phones and tablets save designs inside the browser (Android/iOS browsers
   can't write to folders) and exports download.
 
 ALL THE TOOLS
   In the toolbox a small corner arrow means more tools sit behind that button:
-  click the arrow or hold the button to see them. The button then shows the tool
+  click the arrow, or hold the button on a computer, to see them. The button then shows the tool
   you used last. The Tools menu lists every tool by name.
 
   Pick (V)                 select, move, scale, rotate
@@ -216,7 +230,7 @@ USEFUL KEYS
   B brush · T text · I eyedropper · Z zoom · F9 mockup preview
   ⌘/Ctrl: Z undo · ⇧Z redo · D duplicate · G group · ⇧G ungroup · C/V copy/paste
   Delete removes · Esc cancels
-  Palette: left-click = fill, right-click = outline
+  Colours strip: see COLOURS below
 
 SHAPING  (Objects panel › Shaping, the Object menu, or the bar at the top
           when 2+ shapes are selected — just like CorelDRAW)

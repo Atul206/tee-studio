@@ -100,6 +100,8 @@
   @media (hover:none){.tool .tip{display:none !important}}
   .tools hr{width:24px;border:0;border-top:1px solid var(--line);margin:4px 0}
   .swatchpair{margin-top:auto;position:relative;width:30px;height:30px;margin-bottom:6px}
+  .swatchpair{cursor:pointer}
+  .swatchpair.outline .s{z-index:2}
   .swatchpair span{position:absolute;width:18px;height:18px;border:2px solid #fff;border-radius:3px}
   .swatchpair .f{left:0;top:0;z-index:1}
   .swatchpair .s{right:0;bottom:0;background:transparent;box-shadow:inset 0 0 0 4px #111}
@@ -139,7 +141,7 @@
   /* docker */
   .dock{grid-area:dock;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
   .dtabs{display:flex;border-bottom:1px solid var(--line)}
-  .dtabs button{flex:1;padding:9px 0;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+  .dtabs button{flex:1 1 auto;min-width:0;padding:9px 4px;font-size:11.5px;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
   .dtabs button.on{color:#fff;border-bottom-color:var(--accent)}
   .dbody{flex:1;overflow:auto;padding:10px;display:none}
   .dbody.on{display:block}
@@ -180,11 +182,15 @@
   .badge-soon{font-size:9px;color:#111;background:var(--warn);border-radius:3px;padding:0 4px;margin-left:4px;font-weight:600}
 
   /* palette */
-  .pal{grid-area:pal;display:flex;align-items:center;gap:3px;padding:0 8px;background:var(--panel);border-top:1px solid var(--line);overflow:hidden}
+  .pal{grid-area:pal;display:flex;align-items:center;gap:3px;padding:0 8px;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+  .pal::-webkit-scrollbar{display:none}
+  .palmode{flex:0 0 auto;position:sticky;left:0;z-index:2;background:var(--panel);margin-right:6px}
+  .palmode button{padding:2px 8px;font-size:11px}
+  @media (pointer:coarse){.palmode button{padding:6px 10px}}
   .pal .none{width:20px;height:20px;flex:0 0 auto;border:1px solid var(--line-2);background:linear-gradient(45deg,transparent 45%,#ef4444 45% 55%,transparent 55%),#fff;cursor:pointer}
   .pal span{width:20px;height:20px;flex:0 0 auto;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3);cursor:pointer}
   .pal span:hover,.pal .none:hover{transform:scale(1.18)}
-  .pal .lbl{color:var(--muted);margin-right:6px;white-space:nowrap}
+  .pal .lbl{color:var(--muted);margin-right:6px;white-space:nowrap;width:auto;height:auto;box-shadow:none;cursor:default;transform:none}
 
   /* status */
   .status{grid-area:status;display:flex;align-items:center;gap:18px;padding:0 10px;background:#18191c;color:var(--muted);font-size:11px;border-top:1px solid var(--line);white-space:nowrap;overflow:hidden}
@@ -230,6 +236,36 @@
   .askdlg .foot{display:flex;justify-content:flex-end;gap:8px}
   .btn.danger{background:var(--bad);border-color:var(--bad)}
   [hidden]{display:none!important}
+  @media (max-width:1099px){#bHelp{order:-1}}
+  /* Help */
+  .dbody.hpwrap.on{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+  .hpask{display:flex;gap:6px}
+  .hpask input{flex:1;min-width:0;height:32px;background:#1f2024;border:1px solid var(--line-2);border-radius:6px;color:var(--text);padding:0 8px;font:inherit}
+  .hpout{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-user-select:text;user-select:text}
+  .hpout h4{margin:10px 0 6px}
+  .hptitle{margin:4px 0 6px;font-size:14px}
+  .hpanswer{margin:0 0 8px;line-height:1.45}
+  .hpsteps{margin:0 0 10px;padding-left:18px;color:var(--muted);line-height:1.45}
+  .hpsteps li{margin-bottom:4px}
+  .hprow{display:flex;gap:6px;flex-wrap:wrap}
+  .hplist{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+  .hpitem{text-align:left;padding:7px 8px;border-radius:5px;color:#d7d9de}
+  .hpitem:hover{background:var(--panel-2)}
+  .hpmiss{margin:4px 0 8px;line-height:1.45}
+  .hpnote{margin:0;color:var(--muted);font-size:11px}
+  .tourring{position:fixed;z-index:80;pointer-events:none;border:2px solid #facc15;border-radius:8px;box-shadow:0 0 0 3px rgba(250,204,21,.25);transition:all .18s ease;animation:tourpulse 1.4s ease-in-out infinite}
+  @keyframes tourpulse{50%{box-shadow:0 0 0 7px rgba(250,204,21,.12)}}
+  .tourcard{position:fixed;z-index:81;left:56px;bottom:62px;width:min(340px,calc(100vw - 16px));max-height:60dvh;overflow-y:auto;background:#17181b;border:1px solid var(--line-2);border-radius:10px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:6px}
+  .tourhead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .tourx{padding:0 4px;color:var(--muted);font-size:14px}
+  .tourcount{color:var(--muted);font-size:11px}
+  .tourtext{margin:0;font-size:13px;line-height:1.45}
+  .tourwhere{margin:0;color:#facc15;font-size:12px}
+  .tourrow{display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}
+  .tourgap{flex:1}
+  .tourdot{position:fixed;z-index:82;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:rgba(250,204,21,.75);border:2px solid #fff;pointer-events:none}
+  @media (max-width:767px){.tourcard{left:8px;right:8px;width:auto;bottom:120px}}
+  @media (prefers-reduced-motion:reduce){.tourring{animation:none;transition:none}}
   @media (hover:none){.pcard .pdel{opacity:1}}
   /* Ask Claude */
   .dbody.aiwrap.on{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}

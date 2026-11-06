@@ -788,7 +788,7 @@ const Toolbox = {
   show(b, t){ b.dataset.tool = t; b.innerHTML = TOOL_ICONS[t] + (b.classList.contains('fly') ? '<i class="flyarrow"></i>' : '') + `<span class="tip"><b>${this.name(t)}${this.keys[t] ? ' (' + this.keys[t] + ')' : ''}</b><br>${this.tip(t)}</span>`; },
   wire(b, g, i){
     let hold = null, opened = false;
-    const startHold = () => { opened = false; if (g.tools.length > 1) hold = setTimeout(() => { opened = true; this.open(b, g, i); }, 400); };
+    const startHold = e => { opened = false; if (g.tools.length > 1 && e.pointerType !== 'touch') hold = setTimeout(() => { opened = true; this.open(b, g, i); }, 400); };
     const stopHold = () => clearTimeout(hold);
     b.addEventListener('pointerdown', startHold);
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stopHold));

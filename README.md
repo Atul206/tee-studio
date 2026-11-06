@@ -8,7 +8,7 @@ Exports print-ready **PNG (300 DPI, transparent)**, **layered PSD** (one Photosh
 
 ## Try it
 
-**Online:** open **https://atul206.github.io/tee-studio/** — nothing to install. Works on desktop (Chrome/Edge best), tablets and phones: the layout adapts, pinch to zoom, long-press for menus.
+**Online:** open **https://atul206.github.io/tee-studio/** — nothing to install. Works on desktop (Chrome/Edge best), tablets and phones: the layout adapts, pinch to zoom, double-tap for menus.
 
 **Offline:**
 
@@ -24,7 +24,8 @@ Full instructions and shortcuts: [HOW-TO-USE.txt](HOW-TO-USE.txt).
 
 | Area | Features |
 |---|---|
-| Devices | Desktop, tablet and phone layouts; pinch-zoom and two-finger pan, long-press menus, double-tap, larger touch handles |
+| Devices | Desktop, tablet and phone layouts; pinch-zoom and two-finger pan, double-tap menus, larger touch handles |
+| Help | Offline help panel: ask in your own words, then follow a guided tour on the real buttons, with practice shapes |
 | Workspace | Menu bar, context property bar, toolbox, rulers in inches, colour palette (left-click fill, right-click outline), layers panel, a print area of any size on a T-shirt mockup: T-shirt and paper presets or custom, set for each design (7 shirt colours, front and back pages) |
 | Toolbox | Every tool of CorelDRAW's basic toolbox, in flyouts and a Tools menu |
 | Curves | Freehand, 2-Point Line, Bezier, Pen, B-Spline, Polyline, 3-Point Curve, Artistic Media (Preset, Brush, Sprayer, Calligraphic, Expression), Smart Drawing |

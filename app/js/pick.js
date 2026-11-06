@@ -317,8 +317,13 @@ const Pick = {
   },
   closeMenu(){ if (this.menuEl){ this.menuEl.remove(); this.menuEl = null; } },
   contextMenu(e){
-    const has = !!canvas.getActiveObject(), grp = has && canvas.getActiveObject().type === 'group';
+    const a = canvas.getActiveObject(), has = !!a, grp = has && a.type === 'group', one = has && actives().length === 1;
+    // what a double-click does on a computer, for touch screens where a double-tap opens this menu
+    const edit = !one ? [] : a.text != null ? [['edittext', 'Edit text', '', false, () => { canvas.setActiveObject(a); a.enterEditing(); a.selectAll(); canvas.requestRenderAll(); }], null]
+      : a.type === 'path' ? [['editnodes', 'Edit points (Shape tool)', '', false, () => setTool('shape')], null]
+      : a.type === 'table' ? [['edittable', 'Edit table', '', false, () => setTool('table')], null] : [];
     this.menu(e, [
+      ...edit,
       ['copy', 'Copy', '⌘C', !has, () => run('copy')], ['paste', 'Paste', '⌘V', !clipboard, () => run('paste')], ['dup', 'Duplicate', '⌘D', !has, () => run('dup')], ['del', 'Delete', 'Del', !has, () => run('del')], null,
       ['grp', grp ? 'Ungroup' : 'Group', grp ? '⇧⌘G' : '⌘G', !has, () => run(grp ? 'ungroup' : 'group')], ['front', 'To front', '⇧PgUp', !has, () => run('front')], ['back', 'To back', '⇧PgDn', !has, () => run('toback')], null,
       ['curves', 'Convert to curves', '', !has, () => run('shape:curves')], ['center', 'Center in print area', 'P', !has, () => run('center')], null,
@@ -486,4 +491,6 @@ document.addEventListener('mouseup', e => {
   Pick.dropMenu(e, R.objs, g ? g.dx : 0, g ? g.dy : 0);
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && Pick.rdrag){ Pick.rdrag = null; Pick.ghost = null; canvas.requestRenderAll(); } }, true);
-document.addEventListener('mousedown', e => { if (Pick.menuEl && e !== Pick.menuEvent && !e.target.closest('.ctxmenu')) Pick.closeMenu(); });
+// any press outside closes the menu: a finger on the canvas sends no mouse event, so this listens for pointers too
+['pointerdown', 'mousedown'].forEach(t => document.addEventListener(t, e => { if (Pick.menuEl && e !== Pick.menuEvent && !(e.target.closest && e.target.closest('.ctxmenu'))) Pick.closeMenu(); }, true));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && Pick.menuEl){ e.stopImmediatePropagation(); Pick.closeMenu(); } }, true);
