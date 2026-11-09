@@ -412,6 +412,7 @@ const Bitmap = (() => {
     if (cmd === 'uncrop') return uncrop();
     if (cmd === 'save') return savePixels();
     if (cmd === 'rmbg') return BgRemove.open();
+    if (cmd === 'heal') return Heal.open();
   }
   function syncBar(o){
     $('bmInfo').textContent = info(o);
@@ -422,6 +423,6 @@ const Bitmap = (() => {
   canvas.on('selection:cleared', () => { if (adjO && !crop) closeAdjust(true); });
   canvas.on('selection:updated', () => { if (adjO && canvas.getActiveObject() !== adjO) closeAdjust(true); });
 
-  function closePanels(){ closeAdjust(true); cancelCrop(); }
+  function closePanels(){ closeAdjust(true); cancelCrop(); if (typeof Heal !== 'undefined') Heal.close(); }
   return {readDpi, withDpi, importImage, run, syncBar, isImg, info, dpiOf, rebuild, closePanels, boxPass, get cropping(){ return !!crop; }, cancelCrop};
 })();

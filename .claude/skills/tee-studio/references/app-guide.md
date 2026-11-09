@@ -23,7 +23,7 @@ The promise of the app: open `index.html` by double-clicking it and everything w
 | `pick.js`, `nodes.js` | Pick tool, guides, snapping; Shape tool nodes |
 | `shaping.js`, `textcurves.js` | Weld and Trim with paper.js; text on curves and text outlines |
 | `effects.js`, `effects-ui.js`, `blend.js`, `clip.js` | Live effects, blends, transparency, clip frames, Focus |
-| `bitmap.js`, `bgremove.js` | Pictures: resample, adjust, crop, background removal |
+| `bitmap.js`, `bgremove.js`, `heal.js` | Pictures: resample, adjust, crop, background removal (gaps inside, Erase/Keep brush), Heal (content-aware fill) |
 | `help.js`, `help-data.js` | Offline Help panel and guided tours. Add a guide to `help-data.js` when a feature changes where something is |
 | `claude.js` | The copy inside Claude: Ask Claude panel, the actions Claude may take, saving to the Claude account, save prompt (see `claude/README.md`) |
 | `export.js`, `storage.js`, `pagesize.js`, `touch.js` | Exports, saving and the home screen, page size dialog, touch |

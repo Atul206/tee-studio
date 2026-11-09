@@ -6,7 +6,7 @@
 <title>Tee Studio</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322c55e'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M11 3c1 3 3 4 5 4s4-1 5-4l8 3 3 7-5 3-2-2v15c0 1-1 1-1 1H9s-1 0-1-1V14l-2 2-5-3 3-7z'/%3E%3C/svg%3E">
 <!-- Everything loads from this folder: open index.html directly, no server or internet needed. -->
-<link rel="stylesheet" href="app/styles.css?v=5fabf1c265">
+<link rel="stylesheet" href="app/styles.css?v=6848ec2558">
 <script src="fonts/fonts.js"></script>
 <script src="lib/fabric.min.js"></script>
 <script src="lib/ag-psd.js"></script>
@@ -81,6 +81,7 @@
     <div class="mi"><button>Bitmaps</button><div class="dd">
       <button data-cmd="import">Import picture… <kbd>⌘I</kbd></button>
       <hr><button data-cmd="bmp:rmbg">Remove background…</button>
+      <button data-cmd="bmp:heal">Heal: remove people and marks…</button>
       <button data-cmd="bmp:resample">Resample…</button>
       <button data-cmd="bmp:adjust">Adjust (brightness, colour, sharpen)…</button>
       <button data-cmd="bmp:crop">Crop picture</button>
@@ -300,6 +301,7 @@
       <span class="hint" id="bmInfo" title="Pixel size and the resolution it prints at, at this size"></span>
       <button class="btn ghost mini" data-cmd="bmp:resample" title="Give the picture a new pixel size or resolution">Resample…</button>
       <button class="btn ghost mini" data-cmd="bmp:rmbg" title="Make the background transparent: by colour, by a boundary you draw, or both">Remove background…</button>
+      <button class="btn ghost mini" data-cmd="bmp:heal" title="Paint over a person, mark or object: it is filled in from what is around it">Heal…</button>
       <button class="btn ghost mini" data-cmd="bmp:adjust" title="Brightness, contrast, colour, sharpen">Adjust…</button>
       <button class="btn ghost mini" data-cmd="bmp:crop" title="Drag an area to keep">Crop</button>
       <button class="btn ghost mini" data-cmd="bmp:uncrop" id="bmUncrop" title="Show the whole picture again">Reset crop</button>
@@ -574,14 +576,26 @@
     <div class="row"><label>Tolerance</label><input type="range" id="bgTol" min="0" max="100" step="1"><output></output></div>
     <div class="row"><label>Softness</label><input type="range" id="bgSoft" min="0" max="20" step="1"><output></output></div>
     <label class="ck"><input type="checkbox" id="bgContig"> Only background touching the edges</label>
+    <label class="ck sub" id="bgHolesRow" title="Background colour closed in by the picture: between spokes, inside letters, under arms"><input type="checkbox" id="bgHoles"> …and gaps inside closed in by the picture</label>
     <label class="ck"><input type="checkbox" id="bgSpecks"> Remove specks</label>
     <label class="ck"><input type="checkbox" id="bgClean"> Clean edge colours</label>
   </div>
   <div class="row"><label>Boundary</label><button class="btn ghost mini" id="bgDraw" title="Click around the part, or drag to draw freehand">Draw…</button><button class="btn ghost mini" id="bgClear">Clear</button></div>
   <div class="row"><label></label><div class="seg" id="bgPolyMode"><button data-v="keep" class="on">Keep inside</button><button data-v="cut">Remove inside</button></div></div>
+  <div class="row brushrow"><label>Brush</label><div class="seg" id="bgBrushMode"><button data-v="erase" title="Paint over anything that should be see-through">Erase</button><button data-v="keep" title="Paint over anything that went but should stay">Keep</button></div><button class="btn ghost mini" id="bgBrushUndo" title="Take back the last brush stroke">Undo</button></div>
+  <div class="row brushrow"><label>Brush size</label><input type="range" id="bgBrushSize" min="4" max="160" step="1" value="30"><output>30</output></div>
   <label class="ck"><input type="checkbox" id="bgInvert"> Invert: keep what would be removed</label>
   <p class="fmtnote" id="bgNote"></p>
   <div class="foot"><button class="btn ghost" id="bgReset">Reset</button><span style="flex:1"></span><button class="btn ghost" id="bgCancel">Cancel</button><button class="btn primary" id="bgOk">OK</button></div>
+</div>
+
+<!-- HEAL (paint over what to remove; filled in from the surroundings) -->
+<div class="floatpanel" id="heal">
+  <h3>Heal</h3>
+  <p class="fmtnote healhow">Paint over a person, a mark or anything else to remove. When you let go it is filled in from what is around it. Paint again over any part that doesn't look right.</p>
+  <div class="row"><label>Brush size</label><input type="range" id="healSize" min="4" max="240" step="1" value="40"><output>40</output></div>
+  <p class="fmtnote" id="healNote"></p>
+  <div class="foot"><button class="btn ghost" id="healUndo">Undo</button><span style="flex:1"></span><button class="btn primary" id="healDone">Done</button></div>
 </div>
 
 <!-- HOME / PROJECTS -->
@@ -633,14 +647,15 @@
 <script src="app/js/dimension.js?v=a1015ef1fc"></script>
 <script src="logos/logos.js"></script>
 <script src="app/js/logos.js?v=5794cb2d77"></script>
-<script src="app/js/help-data.js?v=cc2d617623"></script>
+<script src="app/js/help-data.js?v=6586cbc5b0"></script>
 <script src="app/js/help.js?v=492a767c79"></script>
 <script src="app/js/touch.js?v=1166f81098"></script>
-<script src="app/js/bitmap.js?v=b5b60cd08c"></script>
-<script src="app/js/bgremove.js?v=2a9bc17c25"></script>
+<script src="app/js/bitmap.js?v=50e80749ca"></script>
+<script src="app/js/bgremove.js?v=81cc5ccb0a"></script>
+<script src="app/js/heal.js?v=12cf488520"></script>
 <script src="app/js/export.js?v=c47440fc3b"></script>
 <script src="app/js/pagesize.js?v=ed944f4d08"></script>
-<script src="app/js/claude.js?v=3a6a2c4565"></script>
+<script src="app/js/claude.js?v=7e95b81594"></script>
 <script src="app/js/storage.js?v=653233af05"></script>
 <script src="app/js/main.js?v=b5467a10ee"></script>
 </body>

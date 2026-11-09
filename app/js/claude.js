@@ -101,6 +101,7 @@ const DesignActions = {
     if (o.text != null){ s.text = o.text.slice(0, 120); s.font = o.fontFamily; s.size_pt = Math.round(o.fontSize * (o.scaleY || 1) * 72 / PX_PER_IN); }
     if (o.opacity != null && o.opacity < 1) s.opacity = o.opacity;
     if (o.visible === false) s.hidden = true;
+    if (Bitmap.isImg(o)){ s.type = 'picture'; s.pixels = [Math.round(o.width), Math.round(o.height)]; if (o.bg) s.background_removed = {gaps_inside: !!o.bg.holes, brush_strokes: (o.bg.brush || []).length}; }
     if (deep && o.type === 'group') s.parts = o._objects.filter(k => k.name !== 'Logo box').slice(0, 30).map(k => { const p = {id: uidOf(k), name: nameOf(k).slice(0, 40)}; if (k.text != null) p.text = k.text.slice(0, 120); else if (k.fill) p.fill = k.fill; if (k.stroke && k.strokeWidth) p.stroke = k.stroke; return p; });
     return s;
   },
@@ -184,8 +185,40 @@ const DesignActions = {
     }
     o.dirty = true; return o;
   },
+  picture(id){ const o = this.find(id); if (!Bitmap.isImg(o)) throw new Error('That is not a picture'); if (o.group) throw new Error('Ungroup the picture first'); return o; },
+  // spots on the page in inches, [x, y, r], as the brush's own share of the picture's width
+  spots(o, list, kind){
+    if (!Array.isArray(list)) throw new Error(`${kind} must be a list of [x, y, r] in inches`);
+    const full = o.getOriginalSize(), inv = fabric.util.invertTransform(o.calcTransformMatrix());
+    const at = (x, y) => { const l = fabric.util.transformPoint(new fabric.Point(x * PX_PER_IN, y * PX_PER_IN), inv); return [l.x + o.width / 2 + (o.cropX || 0), l.y + o.height / 2 + (o.cropY || 0)]; };
+    return list.slice(0, 200).map(s => {
+      const [x, y, r] = [0, 1, 2].map(i => this.num(s[i], kind));
+      const p = at(x, y), q = at(x + r, y), rp = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      return {m: kind === 'keep' ? 'keep' : 'erase', r: +(rp / full.width).toFixed(5), pts: [[+(p[0] / full.width).toFixed(5), +(p[1] / full.height).toFixed(5)]]};
+    });
+  },
+  removeBackground(a){
+    const o = this.picture(a.id), b = Object.assign({colour: true, colors: [], tol: 14, soft: 1, contig: true, holes: true, specks: true, clean: true, poly: null, polyMode: 'keep', invert: false, brush: []}, a.reset ? {} : o.bg || {});
+    if (a.off){ o.bg = null; Bitmap.rebuild(o); return o; }
+    if (a.colors) b.colors = (Array.isArray(a.colors) ? a.colors : [a.colors]).slice(0, 4).map(c => { const h = this.colour(c), n = new fabric.Color(h).getSource(); return [n[0], n[1], n[2]]; });
+    if (a.tolerance !== undefined) b.tol = Math.max(0, Math.min(100, this.num(a.tolerance, 'tolerance')));
+    if (a.softness !== undefined) b.soft = Math.max(0, Math.min(20, this.num(a.softness, 'softness')));
+    if (a.gaps_inside !== undefined) b.holes = !!a.gaps_inside;
+    if (a.edges_only !== undefined) b.contig = !!a.edges_only;
+    b.brush = (b.brush || []).concat(a.erase ? this.spots(o, a.erase, 'erase') : [], a.keep ? this.spots(o, a.keep, 'keep') : []);
+    o.bg = b; Bitmap.rebuild(o); return o;
+  },
+  async heal(a){
+    const o = this.picture(a.id);
+    if (!Array.isArray(a.areas) || !a.areas.length) throw new Error('areas must be a list of {x, y, w, h} in inches');
+    const areas = a.areas.slice(0, 20).map(r => ({x: this.num(r.x, 'x') * PX_PER_IN, y: this.num(r.y, 'y') * PX_PER_IN, w: this.num(r.w, 'w') * PX_PER_IN, h: this.num(r.h, 'h') * PX_PER_IN}));
+    if (!await Heal.healAreas(o, areas)) throw new Error('Those areas are outside the picture');
+    return o;
+  },
   async run(a){
     switch (a.op){
+      case 'remove_background': return this.removeBackground(a);
+      case 'heal': return this.heal(a);
       case 'add_text': return this.addText(a);
       case 'add_shape': return this.addShape(a);
       case 'add_artwork': return this.addArtwork(a);
@@ -239,6 +272,8 @@ Put every change in ONE apply_changes call if you can, since each extra call cos
 - {op:"update", id, text, font, size_pt, bold, align, spacing, color (all fills and outlines of an object or group), fill, stroke, stroke_width, x, y, w, h, angle, opacity, visible, center:true|"x"|"y", name}. Parts of a group have their own ids, for changing their text or colour.
 - {op:"delete", id}, {op:"order", id, to:"front"|"back"|"forward"|"backward"}, {op:"group", ids, name}, {op:"ungroup", id}
 - {op:"set_shirt", color}, {op:"set_side", side:"front"|"back"}, {op:"set_page_size", width, height}
+- {op:"remove_background", id, colors:["#fff"...], tolerance (0-100, 14 by default), softness (0-20), gaps_inside (true by default: also clears background colour closed in by the subject, between spokes or inside letters), edges_only, erase:[[x,y,r]...], keep:[[x,y,r]...], reset, off}. Works on a picture, on this computer; the original pixels stay. erase and keep are round brush dabs on the page in inches that clear or bring back what they cover, for whatever is left. A picture whose edges are already see-through has no background colour to learn, so pass the gaps' colour in colors.
+- {op:"heal", id, areas:[{x, y, w, h}...]} paints over the oval inside each box on the page, in inches, and fills it in from what is around it: for removing people, objects or marks from a photo. Make each box a little bigger than what goes, shadow included. Big areas take a few seconds. It changes the picture's pixels; Undo takes it back.
 
 Shirt colours: ${Object.keys(SHIRTS).join(', ')}. Fonts: ${FONTS.join(', ')}.
 

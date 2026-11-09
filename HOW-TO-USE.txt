@@ -279,6 +279,18 @@ TEXT ON A CURVE
   SVG export can also convert all text to outlines (tick the option); text on a
   curve is always exported as outlines.
 
+PICTURES  (select a picture: the bar above the page, or the Bitmaps menu)
+  Remove background  makes the background see-through; the original is kept.
+                 "…and gaps inside" also clears background closed in by the
+                 picture: between bike spokes, inside letters, under arms.
+                 Outside already see-through? Press Pick and click a gap.
+                 Erase / Keep brushes: paint over anything missed, or anything
+                 that went by mistake. Undo takes back the last stroke.
+  Heal           paint over a person, an object or a mark; when you let go it
+                 is filled in from what is around it. Paint again over any part
+                 that looks wrong; Undo takes a stroke back. Big areas on big
+                 photos take a few seconds.
+
 SHARING THE APP
   Zip or copy the whole tee-studio folder. Keep these together:
   index.html, app/, lib/, fonts/  (my-designs/ holds your own work).
